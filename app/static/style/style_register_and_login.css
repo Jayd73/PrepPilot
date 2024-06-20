@@ -1,0 +1,22 @@
+
+.box-area{
+    width: 80%;
+}
+
+.right-box{
+    padding-inline: 5%;
+}
+
+@media only screen and (max-width: 786px) {
+    .box-area{
+        margin-inline: 10px;
+        height: 90vh;
+    }
+
+    .left-box{
+        height: 0px;
+        overflow: hidden;
+        padding: 0%;
+    }
+
+}

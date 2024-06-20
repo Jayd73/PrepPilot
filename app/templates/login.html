@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign In</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" type = "text/css" href = "../static/style/style_base.css">
+    <link rel="stylesheet" type = "text/css" href = "../static/style/style_register_and_login.css">
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="../static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
+    <link rel="manifest" href="../static/images/site.webmanifest">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+</head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script>
+        function validateAndSubmitForm() {
+            event.preventDefault();
+
+            const submit_btn = document.getElementById('submit');
+        
+            const identifier_inp = document.getElementById('identifier');
+            const passwd_inp = document.getElementById('password');
+
+            const identifier = identifier_inp.value.trim();
+            const passwd = passwd_inp.value.trim();
+
+            const loginFormData = new FormData();
+            
+
+            is_valid = true;
+
+            submit_btn.disabled = true;
+            submit_btn.textContent = "Submitting..."
+
+            if (isValidUsername(identifier)) {
+                loginFormData.append('username', identifier)
+                identifier_inp.classList.remove("is-invalid")
+                identifier_inp.classList.add("is-valid")
+                document.getElementById('invalid-identifier-feedback').innerHTML = "";
+
+            }
+            else if (isValidEmail(identifier)) {
+                loginFormData.append('email', identifier)
+                identifier_inp.classList.remove("is-invalid")
+                identifier_inp.classList.add("is-valid")
+                document.getElementById('invalid-identifier-feedback').innerHTML = "";
+
+            }
+            else {
+                identifier_inp.classList.add("is-invalid")
+                document.getElementById('invalid-identifier-feedback').innerHTML = "Please enter a valid username or email address";
+                is_valid = false;
+            }
+
+            if (passwd !== '') {
+                loginFormData.append('password', passwd)
+                passwd_inp.classList.remove("is-invalid")
+                passwd_inp.classList.add("is-valid")
+                document.getElementById('invalid-password-feedback').innerHTML = "";
+            }
+            else {
+                passwd_inp.classList.add("is-invalid")
+                document.getElementById('invalid-password-feedback').innerHTML = "Please enter a password";
+                is_valid = false;
+            }
+
+            if (!is_valid){
+                submit_btn.disabled = false;
+                submit_btn.textContent = "Submit"
+                return;
+            }
+
+            fetch('/login', {
+                method: "POST",
+                body: loginFormData,
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 401){
+                    identifier_inp.classList.add("is-invalid")
+                    document.getElementById('invalid-identifier-feedback').innerHTML = "Userame or Email address might be incorrect"
+                    
+                    passwd_inp.classList.add("is-invalid")
+                    document.getElementById('invalid-password-feedback').innerHTML = "Password might be incorrect"
+                }
+                else if (status === 200) {
+                    identifier_inp.classList.remove("is-invalid")
+                    identifier_inp.classList.add("is-valid")
+                    document.getElementById('invalid-identifier-feedback').innerHTML = ""
+
+                    passwd_inp.classList.remove("is-invalid")
+                    passwd_inp.classList.add("is-valid")
+                    document.getElementById('invalid-password-feedback').innerHTML = ""
+
+                    window.location.href = '/';
+                }
+                else {
+                    alert("Unexpected Error occured");
+                    console.error('Unexpected error:', body);
+                }
+
+                submit_btn.disabled = false;
+                submit_btn.textContent = "Submit";
+                
+            })
+
+        }
+
+
+        // Generated using ChatGPT
+        function isValidEmail(email) {
+            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email);
+        }
+
+        // Generated using ChatGPT
+        function isValidUsername(uname) {
+            const re = /^[a-zA-Z0-9_]+$/;
+            return re.test(uname);
+        }
+
+        // took help from ChatGPT
+        function managePasswdVisibilityToggle(toggleBtnId, passwdInpId){
+            document.addEventListener('DOMContentLoaded', (event) => {
+            const togglePassword = document.getElementById(toggleBtnId);
+            const password = document.getElementById(passwdInpId);
+            const icon = togglePassword.querySelector('i');
+
+            togglePassword.addEventListener('click', () => {
+                // Toggle the type attribute using getAttribute() method
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+
+                // Toggle the icon
+                icon.classList.toggle('bi-eye-slash');
+                icon.classList.toggle('bi-eye');
+                });
+            });
+        }
+
+        managePasswdVisibilityToggle("togglePassword", "password")
+
+    </script>
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="row border rounded-5 p-3 bg-white shadow box-area">
+            <div class="col-md-6 d-flex justify-content-center align-items-center flex-column left-box">
+                <div class="featured_img" style="object-fit: contain;">
+                    <img src="../static/images/entry page graphic log in.png" class="img-fluid" style="width: 100%; height: 100%; border-radius: 10px;">
+                </div>
+            </div>
+            <div class="col-md-6 col-12 right-box">
+                <div class="row justify-content-center align-items-center">
+                    <img src="../static/images/PrepPilot poster.png" class="img-fluid" style="width: 35%; margin-top: 1%;">
+                
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <form id = "loginForm" style="margin-top: 10%;" method="POST">
+                        <div class="mb-3">
+                            <input class="form-control" id="identifier" name = "identifier" placeholder="Username or Email address">
+                            <div class="invalid-feedback" id="invalid-identifier-feedback"></div>
+                        </div>
+                        
+                        <div class="input-group mb-3">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" aria-describedby="togglePassword">
+                        <button class="btn btn-outline-secondary secondary-col-1" type="button" id="togglePassword">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                        <div class="invalid-feedback" id="invalid-password-feedback"></div>
+                        </div>
+
+                        <button type="button" id = "submit" onclick="validateAndSubmitForm();" class="btn btn-primary secondary-col-1" style="width: 100%; margin-top: 6%;">
+                            Submit
+                        </button>
+                    </form>
+
+                    <p style="margin-top: 3%;">Don't have an account? <a href="/register">Register here.</a></p>
+                  </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>    
