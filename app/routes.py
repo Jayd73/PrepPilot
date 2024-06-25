@@ -1,10 +1,21 @@
-from flask import redirect, render_template, session, jsonify, request, current_app as app
+from flask import flash, redirect, render_template, session, jsonify, request, current_app as app
 from . import db, USER_ID, ROLE
-from .models import User, Subject, Test, Question, QuestionOption, UserTest, TYPE_REGULAR_USER, TYPE_ADMIN
-from .helpers import login_required, check_password_hash, generate_hash
+from .models import User, Subject, Test, Question, QuestionOption, UserTest, TYPE_REGULAR_USER, TYPE_ADMIN, QTYPE_MCQ, QTYPE_MSQ, QTYPE_RESP
+from .helpers import login_required, admin_privilege_required, check_password_hash, generate_hash, get_structured_inp_ids
+import os
 
 GET = 'GET'
 POST = 'POST'
+
+SUCCESS_MSG = "success"
+FAILURE_MSG = "error"
+WARNING_MSG = "warning"
+NORMAL_MSG = "message"
+
+@app.route('/', methods=[GET])
+@login_required
+def index():
+    return render_template("index.html")
 
 @app.route("/register", methods=[GET, POST])
 def register():
@@ -45,7 +56,7 @@ def register():
             return redirect("/")
         return render_template("register.html")
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=[GET, POST])
 def login():
     if request.method == "POST":
         session.clear()
@@ -82,10 +93,114 @@ def logout():
     session.clear()
     return redirect("/")
 
-@app.route('/', methods=['GET'])
+@app.route('/test_editor/create', methods=[GET, POST])
 @login_required
-def index():
-    return "<h1>hello !<h1>"
+@admin_privilege_required
+def test_editor():
+    if request.method == POST:
+        test_form = request.form
+        safe_int = lambda s: int(s) if s.isdigit() else 0
+        if not any(inp_name_id.startswith("question") for inp_name_id in test_form.keys()):
+            flash("Empty test discarded", WARNING_MSG)
+            return jsonify({'success': 'Empty test discarded'}), 200
+        
+        # New Test creation
+        test_title = test_form.get("test-title").strip()
+        test_desc = test_form.get("test-description").strip()
+        test_subject = test_form.get("test-subject").strip()
+        test_dur_hr = safe_int(test_form.get("test-duration-hr"))
+        test_dur_min = safe_int(test_form.get("test-duration-min"))
+        test_dur_sec = test_dur_hr * 60 * 60 + test_dur_min * 60 + safe_int(test_form.get("test-duration-sec"))
+
+        subject = Subject.query.filter_by(name = test_subject).first()
+        if not subject:
+            new_subject = Subject(name = test_subject)
+            db.session.add(new_subject)
+            db.session.commit()
+            subject = new_subject
+
+        new_test = Test (
+                            subject_id = subject.id,
+                            title = test_title, 
+                            description = test_desc, 
+                            duration_seconds = test_dur_sec,
+                            created_by = session[USER_ID]
+                        )
+        
+        db.session.add(new_test)
+        db.session.commit()
+
+        # New Question creation
+        question_data = get_structured_inp_ids(list(test_form.keys()) + list(request.files.keys()))
+        for question_inp_data in question_data:
+            question_text = test_form.get(question_inp_data['question'])
+            question_type = QTYPE_RESP
+            if question_inp_data['options']:
+                tot_correct_options = len([checked_box_ids for checked_box_ids in question_inp_data['options'].values() if checked_box_ids])
+                if tot_correct_options == 1:
+                    question_type = QTYPE_MCQ
+                else:
+                    question_type = QTYPE_MSQ
+            
+            new_question = Question(
+                                        test_id = new_test.id, 
+                                        question_text = question_text, 
+                                        question_type = question_type,
+                                    )
+            
+            question_image = request.files.get(question_inp_data['image'])
+            if question_image:
+                prefix = Question.query.count() + 1
+                question_image_filename = f"{prefix}_{question_image.filename[:20]}"
+                question_image_filepath = os.path.join(app.config['UPLOAD_FOLDER'], question_image_filename)
+                question_image.save(question_image_filepath)
+                new_question = Question(
+                                            test_id = new_test.id, 
+                                            question_text = question_text, 
+                                            question_type = question_type,
+                                            image_path = question_image_filepath
+                                        )
+            
+            db.session.add(new_question)
+            db.session.commit()
+
+            # New QuestionOptionCreation
+            for option_inp_id, checkbox_inp_id in question_inp_data['options'].items():
+                option_text = test_form.get(option_inp_id)
+                is_correct = True if checkbox_inp_id else False
+                new_option = QuestionOption(
+                                                question_id = new_question.id,
+                                                option_text = option_text,
+                                                is_correct = is_correct
+                                            )
+                db.session.add(new_option)
+                db.session.commit()
+            
+            # Response answer is added as a single option of a question, which by default makes it the only correct answer
+            if question_inp_data['response']:
+                resp_answer_text = test_form.get(question_inp_data['response'])
+                new_option = QuestionOption(
+                                                question_id = new_question.id,
+                                                option_text = resp_answer_text,
+                                                is_correct = True
+                                            )
+                db.session.add(new_option)
+                db.session.commit()
+
+        flash("Test created successfully", SUCCESS_MSG)
+        return jsonify({'success': 'Test created and saved successfully'}), 200
+    else:
+        return render_template("test_editor.html")
+    
+@app.route('/search_subjects', methods=['GET'])
+def search_subjects():
+    query = request.args.get('query', '')
+    if query:
+        subjects = Subject.query.filter(Subject.name.ilike(f'%{query}%')).all()
+        subjects_list = [subject.name for subject in subjects]
+    else:
+        subjects_list = []
+    return jsonify(subjects_list)
 
 # @app.route('/api/tests/<int:test_id>', methods=['GET'])
 # def get_test(test_id):

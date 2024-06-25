@@ -16,136 +16,6 @@
 
 </head>
   <body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-    <script>
-        function validateAndSubmitForm() {
-            event.preventDefault();
-
-            const submit_btn = document.getElementById('submit');
-        
-            const identifier_inp = document.getElementById('identifier');
-            const passwd_inp = document.getElementById('password');
-
-            const identifier = identifier_inp.value.trim();
-            const passwd = passwd_inp.value.trim();
-
-            const loginFormData = new FormData();
-            
-
-            is_valid = true;
-
-            submit_btn.disabled = true;
-            submit_btn.textContent = "Submitting..."
-
-            if (isValidUsername(identifier)) {
-                loginFormData.append('username', identifier)
-                identifier_inp.classList.remove("is-invalid")
-                identifier_inp.classList.add("is-valid")
-                document.getElementById('invalid-identifier-feedback').innerHTML = "";
-
-            }
-            else if (isValidEmail(identifier)) {
-                loginFormData.append('email', identifier)
-                identifier_inp.classList.remove("is-invalid")
-                identifier_inp.classList.add("is-valid")
-                document.getElementById('invalid-identifier-feedback').innerHTML = "";
-
-            }
-            else {
-                identifier_inp.classList.add("is-invalid")
-                document.getElementById('invalid-identifier-feedback').innerHTML = "Please enter a valid username or email address";
-                is_valid = false;
-            }
-
-            if (passwd !== '') {
-                loginFormData.append('password', passwd)
-                passwd_inp.classList.remove("is-invalid")
-                passwd_inp.classList.add("is-valid")
-                document.getElementById('invalid-password-feedback').innerHTML = "";
-            }
-            else {
-                passwd_inp.classList.add("is-invalid")
-                document.getElementById('invalid-password-feedback').innerHTML = "Please enter a password";
-                is_valid = false;
-            }
-
-            if (!is_valid){
-                submit_btn.disabled = false;
-                submit_btn.textContent = "Submit"
-                return;
-            }
-
-            fetch('/login', {
-                method: "POST",
-                body: loginFormData,
-            })
-            .then(response => response.json().then(data => ({ status: response.status, body: data })))
-            .then(({ status, body }) => {
-                if (status === 401){
-                    identifier_inp.classList.add("is-invalid")
-                    document.getElementById('invalid-identifier-feedback').innerHTML = "Userame or Email address might be incorrect"
-                    
-                    passwd_inp.classList.add("is-invalid")
-                    document.getElementById('invalid-password-feedback').innerHTML = "Password might be incorrect"
-                }
-                else if (status === 200) {
-                    identifier_inp.classList.remove("is-invalid")
-                    identifier_inp.classList.add("is-valid")
-                    document.getElementById('invalid-identifier-feedback').innerHTML = ""
-
-                    passwd_inp.classList.remove("is-invalid")
-                    passwd_inp.classList.add("is-valid")
-                    document.getElementById('invalid-password-feedback').innerHTML = ""
-
-                    window.location.href = '/';
-                }
-                else {
-                    alert("Unexpected Error occured");
-                    console.error('Unexpected error:', body);
-                }
-
-                submit_btn.disabled = false;
-                submit_btn.textContent = "Submit";
-                
-            })
-
-        }
-
-
-        // Generated using ChatGPT
-        function isValidEmail(email) {
-            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            return re.test(email);
-        }
-
-        // Generated using ChatGPT
-        function isValidUsername(uname) {
-            const re = /^[a-zA-Z0-9_]+$/;
-            return re.test(uname);
-        }
-
-        // took help from ChatGPT
-        function managePasswdVisibilityToggle(toggleBtnId, passwdInpId){
-            document.addEventListener('DOMContentLoaded', (event) => {
-            const togglePassword = document.getElementById(toggleBtnId);
-            const password = document.getElementById(passwdInpId);
-            const icon = togglePassword.querySelector('i');
-
-            togglePassword.addEventListener('click', () => {
-                // Toggle the type attribute using getAttribute() method
-                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                password.setAttribute('type', type);
-
-                // Toggle the icon
-                icon.classList.toggle('bi-eye-slash');
-                icon.classList.toggle('bi-eye');
-                });
-            });
-        }
-
-        managePasswdVisibilityToggle("togglePassword", "password")
-
-    </script>
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
         <div class="row border rounded-5 p-3 bg-white shadow box-area">
             <div class="col-md-6 d-flex justify-content-center align-items-center flex-column left-box">
@@ -158,7 +28,7 @@
                     <img src="../static/images/PrepPilot poster.png" class="img-fluid" style="width: 35%; margin-top: 1%;">
                 
                 <div style="display: flex; flex-direction: column; justify-content: center;">
-                    <form id = "loginForm" style="margin-top: 10%;" method="POST">
+                    <form id = "loginForm" style="margin-top: 10%;">
                         <div class="mb-3">
                             <input class="form-control" id="identifier" name = "identifier" placeholder="Username or Email address">
                             <div class="invalid-feedback" id="invalid-identifier-feedback"></div>
@@ -172,7 +42,7 @@
                         <div class="invalid-feedback" id="invalid-password-feedback"></div>
                         </div>
 
-                        <button type="button" id = "submit" onclick="validateAndSubmitForm();" class="btn btn-primary secondary-col-1" style="width: 100%; margin-top: 6%;">
+                        <button type="submit" id = "submit" class="btn btn-primary secondary-col-1" style="width: 100%; margin-top: 6%;">
                             Submit
                         </button>
                     </form>
@@ -183,6 +53,11 @@
             </div>
         </div>
     </div>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+        crossorigin="anonymous"></script>
+    <script src="../static/javascript/base.js"> </script>
+    <script src="../static/javascript/auth_util.js"> </script>
+    <script src="../static/javascript/login.js"> </script>
 </body>
 </html>    

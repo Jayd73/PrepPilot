@@ -4,12 +4,13 @@
 
 .primary-col-2{
     background-color: #FFF6E9;
-    color: #604CC3;
+    color: #0b052b;
 }
 
 .secondary-col-1{
     background-color: #604CC3;
     color: whitesmoke;
+   
 }
 
 button.secondary-col-1:disabled {
@@ -21,6 +22,7 @@ button.secondary-col-1:disabled {
 button.secondary-col-1:hover {
     background-color: #422fa3; 
     border-color: #422fa3;
+    color: white;
 }
 
 button.secondary-col-1:active {
@@ -50,4 +52,14 @@ button.secondary-col-2:active {
 
 body{
     background-color:rgb(244, 247, 250);
+}
+
+.navbar{
+    padding-inline: 2%;
+    height: 8vh;
+}
+
+.toast-container{
+    max-height: 40%;
+    z-index: 100;
 }

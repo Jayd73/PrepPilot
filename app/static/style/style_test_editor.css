@@ -1,0 +1,18 @@
+
+
+.fixed-ht{
+    height: 5.5vh;
+}
+
+
+.question-img-box{
+    display: none;
+    max-width: 100%;
+    height: auto;
+}
+
+.question-img{
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
