@@ -1,7 +1,7 @@
 from flask import flash, redirect, render_template, session, jsonify, request, current_app as app
 from . import db, USER_ID, ROLE
 from .models import User, Subject, Test, Question, QuestionOption, UserTest, TYPE_REGULAR_USER, TYPE_ADMIN, QTYPE_MCQ, QTYPE_MSQ, QTYPE_RESP
-from .helpers import login_required, admin_privilege_required, check_password_hash, generate_hash, get_structured_inp_ids
+from .helpers import login_required, admin_privilege_required, check_password_hash, generate_hash, get_structured_inp_ids, safe_int
 import os
 
 GET = 'GET'
@@ -99,7 +99,6 @@ def logout():
 def test_editor():
     if request.method == POST:
         test_form = request.form
-        safe_int = lambda s: int(s) if s.isdigit() else 0
         if not any(inp_name_id.startswith("question") for inp_name_id in test_form.keys()):
             flash("Empty test discarded", WARNING_MSG)
             return jsonify({'success': 'Empty test discarded'}), 200
@@ -134,7 +133,10 @@ def test_editor():
         question_data = get_structured_inp_ids(list(test_form.keys()) + list(request.files.keys()))
         for question_inp_data in question_data:
             question_text = test_form.get(question_inp_data['question'])
+            question_marks_pos = safe_int(test_form.get(question_inp_data['marks_pos']))
+            question_marks_neg = safe_int(test_form.get(question_inp_data['marks_neg']))
             question_type = QTYPE_RESP
+            
             if question_inp_data['options']:
                 tot_correct_options = len([checked_box_ids for checked_box_ids in question_inp_data['options'].values() if checked_box_ids])
                 if tot_correct_options == 1:
@@ -142,11 +144,13 @@ def test_editor():
                 else:
                     question_type = QTYPE_MSQ
             
-            new_question = Question(
-                                        test_id = new_test.id, 
-                                        question_text = question_text, 
-                                        question_type = question_type,
-                                    )
+            new_question_prop = {
+                                    "test_id" : new_test.id, 
+                                    "question_text" : question_text, 
+                                    "question_type" : question_type,
+                                    "marks_pos" : question_marks_pos,
+                                    "marks_neg" : question_marks_neg
+                                } 
             
             question_image = request.files.get(question_inp_data['image'])
             if question_image:
@@ -154,36 +158,30 @@ def test_editor():
                 question_image_filename = f"{prefix}_{question_image.filename[:20]}"
                 question_image_filepath = os.path.join(app.config['UPLOAD_FOLDER'], question_image_filename)
                 question_image.save(question_image_filepath)
-                new_question = Question(
-                                            test_id = new_test.id, 
-                                            question_text = question_text, 
-                                            question_type = question_type,
-                                            image_path = question_image_filepath
-                                        )
+                new_question_prop["image_path"] = question_image_filepath
+                
+            new_question = Question(**new_question_prop)
             
             db.session.add(new_question)
             db.session.commit()
 
             # New QuestionOptionCreation
+            new_option_prop = {"question_id" : new_question.id,}
             for option_inp_id, checkbox_inp_id in question_inp_data['options'].items():
                 option_text = test_form.get(option_inp_id)
                 is_correct = True if checkbox_inp_id else False
-                new_option = QuestionOption(
-                                                question_id = new_question.id,
-                                                option_text = option_text,
-                                                is_correct = is_correct
-                                            )
+                new_option_prop["option_text"] = option_text
+                new_option_prop["is_correct"] = is_correct
+                new_option = QuestionOption(**new_option_prop)
                 db.session.add(new_option)
                 db.session.commit()
             
             # Response answer is added as a single option of a question, which by default makes it the only correct answer
             if question_inp_data['response']:
                 resp_answer_text = test_form.get(question_inp_data['response'])
-                new_option = QuestionOption(
-                                                question_id = new_question.id,
-                                                option_text = resp_answer_text,
-                                                is_correct = True
-                                            )
+                new_option_prop["option_text"] = resp_answer_text
+                new_option_prop["is_correct"] = True
+                new_option = QuestionOption(**new_option_prop)
                 db.session.add(new_option)
                 db.session.commit()
 
@@ -201,6 +199,11 @@ def search_subjects():
     else:
         subjects_list = []
     return jsonify(subjects_list)
+
+
+
+
+
 
 # @app.route('/api/tests/<int:test_id>', methods=['GET'])
 # def get_test(test_id):

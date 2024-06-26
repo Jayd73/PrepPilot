@@ -33,8 +33,9 @@ def generate_hash(password):
 def check_password_hash(hash, password):
     return bcrypt.checkpw(password.encode('utf-8'), hash.encode('utf-8'))
 
+# with help of ChatGPT
 def get_structured_inp_ids(inp_ids):
-    result = defaultdict(lambda: {'question': None, 'options': {}, 'response': None, 'image': None})
+    result = defaultdict(lambda: {'question': None, 'options': {}, 'response': None, 'marks_pos': None, 'marks_neg': None, 'image': None})
     for inp_id in inp_ids:
         parts = inp_id.split('-')
         prefix = parts[0]
@@ -55,7 +56,16 @@ def get_structured_inp_ids(inp_ids):
         elif prefix == 'img':
             question_id = parts[3]
             result[question_id]['image'] = inp_id
+        elif prefix == 'marks':
+            question_id = parts[3]
+            if parts[1] == 'pos':
+                result[question_id]['marks_pos'] = inp_id
+            elif parts[1] == 'neg':
+                result[question_id]['marks_neg'] = inp_id
     return [question_dict for question_dict in result.values()]
+
+def safe_int(numStr):
+    return int(numStr) if numStr.isdigit() else 0
 
 
 

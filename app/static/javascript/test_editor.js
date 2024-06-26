@@ -177,6 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+let currQuestionPosMarks = null
+let currQuestionNegMarks = null
+
+    
 function addQuestion(type) {
     const questionContainer = document.getElementById('question-container');
     const randomNum = Math.random().toString(36).substr(2, 10);
@@ -188,38 +192,49 @@ function addQuestion(type) {
 
     let questionHTML = `
         <div class="card shadow mb-2">
-        <div class="card-header primary-col-2 px-1">
-            <div class = "container-fluid d-flex justify-content-between align-items-center">
-            <span class="question-num">Q${questionCount}.</span>
-            <div class="input-group" style="width: max-content">
-                <button type="button" class="btn btn-primary fixed-ht" onclick="document.getElementById('img-inp-${questionId}').click();">
-                <input type="file" name="img-inp-${questionId}" id="img-inp-${questionId}" onchange="showImage('${questionId}', this)" class="form-control" accept="image/*" style="display: none;">
-                <i class="bi bi-image"></i>
-                </button>
-                <button type="button" class="btn secondary-col-1 fixed-ht" onclick="moveQuestionUp('${questionId}')">
-                <i class="bi bi-arrow-up"></i>
-                </button>
-                <button type="button" class="btn secondary-col-1 fixed-ht" onclick="moveQuestionDown('${questionId}')">
-                <i class="bi bi-arrow-down"></i>
-                </button>
-                <button type="button" class="btn btn-danger fixed-ht" onclick="removeQuestion('${questionId}')">
-                <i class="bi bi-trash-fill"></i>
-                </button>
+            <div class="card-header primary-col-2 px-1">
+                <div class = "container-fluid d-flex justify-content-between align-items-center">
+                    <span class="question-num">Q${questionCount}.</span>
+                    <div class="input-group" style="width: max-content">
+                        <button type="button" class="btn btn-primary fixed-ht" onclick="document.getElementById('img-inp-${questionId}').click();">
+                        <input type="file" name="img-inp-${questionId}" id="img-inp-${questionId}" onchange="showImage('${questionId}', this)" class="form-control" accept="image/*" style="display: none;">
+                        <i class="bi bi-image"></i>
+                        </button>
+                        <button type="button" class="btn secondary-col-1 fixed-ht" onclick="moveQuestionUp('${questionId}')">
+                        <i class="bi bi-arrow-up"></i>
+                        </button>
+                        <button type="button" class="btn secondary-col-1 fixed-ht" onclick="moveQuestionDown('${questionId}')">
+                        <i class="bi bi-arrow-down"></i>
+                        </button>
+                        <button type="button" class="btn btn-danger fixed-ht" onclick="removeQuestion('${questionId}')">
+                        <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
+            <div class="card-header primary-col-2 px-1 d-flex justify-content-center align-items-center">
+                <div class="input-group" style="width: 40vh">
+                    <span class="input-group-text">Marks</span>
+                    <span class="input-group-text">Pos.</span>
+                    <input type="number" name="marks-pos-${questionId}" id="marks-pos-${questionId}" min="0" step="1" class="form-control" placeholder="00"
+                        onkeydown="validateInput(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
+                    <span class="input-group-text">Neg.</span>
+                    <input type="number" name="marks-neg-${questionId}" id="marks-neg-${questionId}" min="0" step="1" class="form-control" placeholder="00"
+                        onkeydown="validateInput(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-        <textarea name="${questionId}" placeholder="Enter question" class = "form-control"></textarea>
-        <div class="invalid-feedback" id="invalid-question-${questionId}"></div>
-        <div class="position-relative mt-2 question-img-box" id="img-box-${questionId}" >
+            <div class="card-body">
+            <textarea name="${questionId}" placeholder="Enter question" class = "form-control"></textarea>
+            <div class="invalid-feedback" id="invalid-question-${questionId}"></div>
+            <div class="position-relative mt-2 question-img-box" id="img-box-${questionId}" >
             <img class="question-img"  id="img-${questionId}" src="" alt="Question Image" />
             <div class="input-group-append">
-            <button type="button" class="position-absolute shadow btn btn-danger fixed-ht" onclick="removeQuestionImage('${questionId}')"
-            style = "right: 0;top: 0; border-radius: 0 6px 0 6px;">
+                <button type="button" class="position-absolute shadow btn btn-danger fixed-ht" onclick="removeQuestionImage('${questionId}')"
+                    style = "right: 0;top: 0; border-radius: 0 6px 0 6px;">
                 <i class="bi bi-trash-fill"></i>
-            </button>
+                </button>
             </div>
-        </div>
+            </div>
     `;
 
     if (type === 'mcq') {
@@ -246,6 +261,13 @@ function addQuestion(type) {
     questionElement.innerHTML = questionHTML;
     questionContainer.appendChild(questionElement);
 
+    if (currQuestionPosMarks) { 
+        questionElement.querySelector(`input[id="marks-pos-${questionId}"]`).value = toTwoDigitFormat(currQuestionPosMarks.toString());
+    }
+    if (currQuestionNegMarks) { 
+        questionElement.querySelector(`input[id="marks-neg-${questionId}"]`).value = toTwoDigitFormat(currQuestionNegMarks.toString());
+    }
+
     // At least need 2 options for MCQ question
     if (type === 'mcq') {
         addOption(questionId)
@@ -262,7 +284,7 @@ function addOption(questionId) {
     optionElement.setAttribute('id', optionId);
 
     optionElement.innerHTML = `
-    <div class = "input-group">
+    <div class="input-group">
         <input type="checkbox" name="cb-${optionId}" class="form-check-input" style = "height: 4vh; width: 4vh"/>
         <span class="input-group-text">${optionCount}.</span>
         <input type="text" name=${optionId} class="form-control" placeholder="Enter option" />
@@ -342,21 +364,52 @@ function updateOptionNumbers() {
     });
 }
 
-
-
-
 function checkValue(input) {
-    if (input.id === 'test-duration-hr') {
-        if (input.value < 0) input.value = 0;
-    } else if (input.id === 'test-duration-min' || input.id === 'test-duration-sec') {
+    if (input.id === 'test-duration-min' || input.id === 'test-duration-sec') {
         if (input.value < 0) input.value = 0;
         if (input.value > 59) input.value = 59;
     }
+    input.value = toTwoDigitFormat(input.value)
 }
 
 function validateInput(event) {
     const key = event.key;
-    if (['-', '.'].includes(key)) {
+    if (['-', '.','e'].includes(key)) {
         event.preventDefault();
     }
 }
+
+// With help of ChatGPT
+function toTwoDigitFormat(numStr) {
+    // if string only contains 0's
+    if (/^0*$/.test(numStr)) { 
+        return ""
+    }
+
+    if (numStr.length < 2) {
+        return numStr.padStart(2, '0');
+    }
+    if (numStr.length > 2 && numStr[0] == 0) { 
+        return numStr.substring(1)
+    }
+    return numStr
+}
+
+function setDefaultMarks() { 
+    const posMarks = document.getElementById("def-marks-pos").value
+    const negMarks = document.getElementById("def-marks-neg").value
+    currQuestionPosMarks = null
+    currQuestionNegMarks = null
+    if (posMarks) {
+        currQuestionPosMarks = parseInt(posMarks)
+    }
+    if (negMarks) { 
+        currQuestionNegMarks = parseInt(negMarks)
+    }
+}
+
+function handleDefMarks(inp) { 
+    inp.value = toTwoDigitFormat(inp.value);
+    setDefaultMarks()
+}
+

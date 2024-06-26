@@ -32,12 +32,15 @@ class Test(db.Model):
     duration_seconds = db.Column(db.Integer)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    marks = db.Column(db.Integer)
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     test_id = db.Column(db.Integer, db.ForeignKey('test.id'), nullable=False)
     question_text = db.Column(db.Text, nullable=False)
     question_type = db.Column(db.String(50), nullable=False)
+    marks_pos = db.Column(db.Integer, nullable=False)
+    marks_neg = db.Column(db.Integer, nullable=False)
     image_path = db.Column(db.String(255), unique=True)
 
 class QuestionOption(db.Model):

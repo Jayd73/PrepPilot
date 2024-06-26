@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (status === 401) {
                     identifier_inp.classList.add("is-invalid")
                     document.getElementById('invalid-identifier-feedback').innerHTML = "Userame or Email address might be incorrect"
-
                     passwd_inp.classList.add("is-invalid")
                     document.getElementById('invalid-password-feedback').innerHTML = "Password might be incorrect"
                 } else if (status === 200) {
