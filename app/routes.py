@@ -130,12 +130,15 @@ def test_editor():
         db.session.commit()
 
         # New Question creation
+        tot_test_marks = 0
         question_data = get_structured_inp_ids(list(test_form.keys()) + list(request.files.keys()))
         for question_inp_data in question_data:
             question_text = test_form.get(question_inp_data['question'])
             question_marks_pos = safe_int(test_form.get(question_inp_data['marks_pos']))
             question_marks_neg = safe_int(test_form.get(question_inp_data['marks_neg']))
             question_type = QTYPE_RESP
+
+            tot_test_marks += question_marks_pos
             
             if question_inp_data['options']:
                 tot_correct_options = len([checked_box_ids for checked_box_ids in question_inp_data['options'].values() if checked_box_ids])
@@ -161,7 +164,6 @@ def test_editor():
                 new_question_prop["image_path"] = question_image_filepath
                 
             new_question = Question(**new_question_prop)
-            
             db.session.add(new_question)
             db.session.commit()
 
@@ -184,6 +186,9 @@ def test_editor():
                 new_option = QuestionOption(**new_option_prop)
                 db.session.add(new_option)
                 db.session.commit()
+
+        new_test.marks = tot_test_marks
+        db.session.commit()
 
         flash("Test created successfully", SUCCESS_MSG)
         return jsonify({'success': 'Test created and saved successfully'}), 200
