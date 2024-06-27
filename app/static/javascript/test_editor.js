@@ -120,8 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const testFormData = new FormData(document.getElementById('test-edit-form'))
 
         saveBtn.disabled = true
-        saveBtn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saving...`
-
+        saveBtn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saving... <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`
         fetch('/test_editor/create', {
                 method: "POST",
                 body: testFormData,
@@ -213,11 +212,11 @@ function addQuestion(type) {
                 </div>
             </div>
             <div class="card-header primary-col-2 px-1 d-flex justify-content-center align-items-center">
-                <div class="input-group" style="width: 40vh">
+                <div class="input-group" style="width: 50vh">
                     <span class="input-group-text">Marks</span>
                     <span class="input-group-text">Pos.</span>
                     <input type="number" name="marks-pos-${questionId}" id="marks-pos-${questionId}" min="0" step="1" class="form-control" placeholder="00"
-                        onkeydown="validateInput(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
+                        onkeydown="validateInput(event)" oninput="handleMarksPosInp(this)"/>
                     <span class="input-group-text">Neg.</span>
                     <input type="number" name="marks-neg-${questionId}" id="marks-neg-${questionId}" min="0" step="1" class="form-control" placeholder="00"
                         onkeydown="validateInput(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
@@ -261,11 +260,13 @@ function addQuestion(type) {
     questionElement.innerHTML = questionHTML;
     questionContainer.appendChild(questionElement);
 
-    if (currQuestionPosMarks) { 
-        questionElement.querySelector(`input[id="marks-pos-${questionId}"]`).value = toTwoDigitFormat(currQuestionPosMarks.toString());
+    if (currQuestionPosMarks) {
+        const posMarks = toTwoDigitFormat(currQuestionPosMarks)
+        questionElement.querySelector(`input[id="marks-pos-${questionId}"]`).value = posMarks;
+        updateTotalTestMarks()
     }
     if (currQuestionNegMarks) { 
-        questionElement.querySelector(`input[id="marks-neg-${questionId}"]`).value = toTwoDigitFormat(currQuestionNegMarks.toString());
+        questionElement.querySelector(`input[id="marks-neg-${questionId}"]`).value = toTwoDigitFormat(currQuestionNegMarks);
     }
 
     // At least need 2 options for MCQ question
@@ -308,6 +309,7 @@ function removeOption(optionId) {
 function removeQuestion(questionId) {
     const questionElement = document.getElementById(questionId);
     questionElement.remove();
+    updateTotalTestMarks()
     updateQuestionNumbers();
 }
 
@@ -382,10 +384,10 @@ function validateInput(event) {
 // With help of ChatGPT
 function toTwoDigitFormat(numStr) {
     // if string only contains 0's
+    numStr = numStr.toString()
     if (/^0*$/.test(numStr)) { 
         return ""
     }
-
     if (numStr.length < 2) {
         return numStr.padStart(2, '0');
     }
@@ -411,5 +413,22 @@ function setDefaultMarks() {
 function handleDefMarks(inp) { 
     inp.value = toTwoDigitFormat(inp.value);
     setDefaultMarks()
+}
+
+function handleMarksPosInp(inp) { 
+    inp.value = toTwoDigitFormat(inp.value)
+    updateTotalTestMarks()
+}
+
+function updateTotalTestMarks() {
+    let totTestMarks = 0;
+    let testTotalMarksSpan = document.getElementById("tot-test-marks")
+    const questionContainer = document.getElementById('question-container')
+    questionContainer.querySelectorAll('input[id^="marks-pos"]').forEach(marksPosInp => {
+        if (marksPosInp.value) { 
+            totTestMarks += parseInt(marksPosInp.value)
+        }
+    })
+    testTotalMarksSpan.innerHTML = totTestMarks == 0 ? "00" : toTwoDigitFormat(totTestMarks)
 }
 

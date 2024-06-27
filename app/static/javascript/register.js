@@ -20,9 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         is_valid = true;
 
-        submit_btn.disabled = true;
-        submit_btn.textContent = "Submitting..."
-
 
         if (uname.length < min_uname_len || uname.length > max_uname_len) {
             uname_inp.classList.add("is-invalid")
@@ -77,10 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!is_valid) {
-            submit_btn.disabled = false;
-            submit_btn.textContent = "Submit"
             return;
         }
+
+        submit_btn.disabled = true;
+        submit_btn.innerHTML = `Authenticating...<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`
 
         const registerFormData = new FormData(document.getElementById('registerForm'))
 
