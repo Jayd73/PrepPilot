@@ -9,6 +9,7 @@
         integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 
     <link rel="stylesheet" type="text/css" href="../static/style/style_base.css">
+    {% block css %}{% endblock %}
     <link rel="apple-touch-icon" sizes="180x180" href="../static/images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
@@ -18,26 +19,44 @@
 </head>
 
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
-        crossorigin="anonymous"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toastMessageContainers = document.querySelectorAll('.toast')
-            toastMessageContainers.forEach((toastMessageContainer) => {
-                const toast = bootstrap.Toast.getOrCreateInstance(toastMessageContainer)
-                toast.show()
-            })
-        })
-
-    </script>
-
-    <nav class="navbar primary-col-1">
-        <a class="navbar-brand" href="/">
-            <img src="../static/images/PrepPilot name with logo.png" width="150vh">
-        </a>
+<div class="shadow-sm sticky-top" id="nav-bar">
+    <nav class="navbar bg-light">
+        <div style=" margin-right: 1vh;">
+            {% block menu_btn %}{% endblock %}
+        </div>
+        
+        <div style = "width: 20vh;">
+            <a class="navbar-brand" href="/">
+                <img src="../static/images/PrepPilot name with logo.png" width="140vh">
+            </a>
+        </div>
+        <div class="d-none d-lg-block" style="margin-left: 11vh;">
+            {% block nav_content %}{% endblock %}
+        </div>
+        <div class="ms-auto d-flex align-items-center me-2 justify-content-end">
+            <span id="nav-username" class="navbar-text fs-5 d-none d-xl-block" style="color: black; font-weight: bold;">
+                Username
+            </span>
+        </div>
+        <img class="shadow-sm" id="navbarAvatar" src="../static/images/placeholder_avatar.png" style="cursor: pointer;">
     </nav>
+    </div>
+    <div id="userBox" class="p-3 shadow position-fixed" style="width: 90%; max-width: 50vh;">
+        <div class="d-flex align-items-center">
+            <div id="avatarContainer" class="position-relative">
+                <img id="avatar" src="../static/images/placeholder_avatar.png" alt="User Avatar">
+                <button id="changeAvatarBtn">
+                    <i class="bi bi-camera-fill"></i>
+                </button>
+                <input type="file" id="avatarInput" style="display: none;" accept="image/*">
+            </div>
+            <div class="ms-3" style = "width: 100%; word-break: break-all;">
+                <p id="profile-username" class="mb-1 fs-4">Username</p>
+                <p id="profile-email" class="mb-0 text-muted fs-6">user@example.com</p>
+            </div>
+        </div>
+        <button class="btn secondary-col-1 mt-3 fs-6 w-100" id="logoutBtn"><i class="bi bi-box-arrow-right"></i>&nbsp;&nbsp;Logout</li></button>
+    </div>
 
     {% block main %}{% endblock %}
 
@@ -73,6 +92,12 @@
     {% endwith %}
 
     <!-- Toast messages End -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+        crossorigin="anonymous"></script>
+    <script src="../static/javascript/base.js"> </script>
+    {% block js %}{% endblock %}
 </body>
 
 </html>

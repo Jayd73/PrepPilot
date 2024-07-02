@@ -1,8 +1,10 @@
 from flask import redirect, session
 from functools import wraps
-from .models import TYPE_ADMIN
+from .models import TYPE_ADMIN, Question
 from . import USER_ID, ROLE
+from sqlalchemy.event import listens_for
 import bcrypt
+import os
 
 from collections import defaultdict
 
@@ -66,6 +68,23 @@ def get_structured_inp_ids(inp_ids):
 
 def safe_int(numStr):
     return int(numStr) if numStr.isdigit() else 0
+
+def delete_existing_file(user_id, upload_folder):
+    for filename in os.listdir(upload_folder):
+        if filename.startswith(f"{user_id}_"):
+            file_path = os.path.join(upload_folder, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                break
+
+# Used ChatGPT
+@listens_for(Question, 'before_delete')
+def delete_question_image(mapper, connection, target):
+    if target.image_path:
+        if os.path.exists(target.image_path):
+            os.remove(target.image_path)
+        else:
+            print(f"Image not found: {target.image_path}")
 
 
 

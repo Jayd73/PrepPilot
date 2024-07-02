@@ -4,6 +4,166 @@
   Dashboard
 {% endblock %}
 
-{% block main %}
-  <h1>Dashboard</h1>
+{% block css %}
+<link rel="stylesheet" type="text/css" href="../static/style/style_index.css">
 {% endblock %}
+
+{% block menu_btn %}
+  <button class="btn btn-light fs-4 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas"
+    aria-controls="sidebarOffcanvas">
+    <i class="bi bi-list"></i>
+  </button>
+{% endblock %}
+
+{% block nav_content %}
+
+  <div class="input-group d-flex justify-content-center align-items-center" style="width: 150%;">
+    <span class="input-group-text primary-col-2" id="search-icon">
+      <i class="bi bi-search"></i>
+    </span>
+    <input type="text" id="seach-inp" class="form-control" placeholder="Search" aria-label="Search"
+      aria-describedby="search-icon">
+    <button class="btn secondary-col-1" type="button" id="filter-btn-above"><i class="bi bi-sliders"></i></button>
+    <button class="btn secondary-col-1" type="button" id="sort-btn-above"><i class="bi bi-sort-down-alt"></i></button>
+  </div>
+
+{% endblock %}
+
+{% block main %}
+
+<div class="container-fluid d-flex">
+    <div class="col-md-2 d-lg-block d-none position-fixed" id="sidebar">
+    {% if session["role"] == "ADMIN" %}
+      <button class="btn text-start mt-3 p-3 create-test-btn" id = "create-test-btn">
+        <i class="bi bi-pencil-fill"></i>
+        &nbsp;
+        Create Test
+      </button>
+    {% endif %}
+      <div class="btn-group-vertical d-flex">
+        <button class="btn tab-btn text-start" id="all-tests-btn"  data-type="all">
+          <i class="bi bi-list"></i>
+          &nbsp;
+          All Tests
+        </button>
+        <button class="btn tab-btn text-start" id="attempted-tests-btn" data-type="attempted">
+          <i class="bi bi-check-circle me-2"></i>
+          Attempted Tests
+        </button>
+
+        {% if session["role"] == "ADMIN" %}
+          <button class="btn tab-btn text-start" id="created-tests-btn" data-type="created">
+            <i class="bi bi-pencil-square me-2"></i>
+            Created Tests
+          </button>
+        {% endif %}
+        
+      </div>
+    </div>
+    <div class="col-md-10 content">
+      <div class="row" id="top-bar" >
+      <!-- Seach Bar for lesser width screen -->
+      <div class="d-lg-none" id="search-container-small-width">
+        <div class="input-group d-flex justify-content-center align-items-center" style="width: 100%;">
+          <span class="input-group-text primary-col-2" id="search-icon">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" id="seach-inp" class="form-control" placeholder="Search" aria-label="Search"
+            aria-describedby="search-icon">
+          <button class="btn secondary-col-1" type="button" id="filter-btn-above"><i class="bi bi-sliders"></i></button>
+          <button class="btn secondary-col-1" type="button" id="sort-btn-above"><i class="bi bi-sort-down-alt"></i></button>
+        </div>
+      </div>
+      <!-- Search Bar lesser width end -->
+
+      
+
+      <!-- Pagination -->
+      
+        <div class="col-lg-12">
+
+          <div id="pagination-nav" class="d-flex align-items-center justify-content-between">
+            
+            <div class="form-check" id="select-all-checkbox" style="width: max-content; transform: scale(1.2); margin-left: 4px; visibility: hidden; pointer-events: none;">
+              <input class="form-check-input" type="checkbox" id="select-all-cb">
+              <label class="form-check-label" for="select-all-cb" id="select-all-label">
+                Select All
+              </label>
+            </div>
+
+            <ul class="pagination pagination-sm mt-2">
+              <!-- Pagination Content -->
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <!--Pagination End-->
+
+      <div class="test-row-container mb-3" id="test-row-container">
+      
+        <!-- Rows of test details -->
+     
+      </div>
+
+      
+      
+    </div>
+</div>
+
+<!-- Go To Page input-->
+<div class="input-group d-none shadow position-fixed" id="goto-page-container" style="width: 18vh; min-width: 18vh;z-index: 600;">
+  <input id="goto-page-inp" type="number" class="form-control" placeholder="Go to" aria-label="goto-page"
+    aria-describedby="goto-span" onkeydown="validateInput(event)" oninput="capInpVal(this, 1, 10000)">
+  <button class="btn btn-primary" id="goto-page-btn" type="button">Go</button>
+</div>
+<!-- Go To Page input end -->
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel" style="width: 70%; max-width: 40vh; min-width: 30vh;">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="sidebarOffcanvasLabel">Options</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          {% if session["role"] == "ADMIN" %}
+          <button class="btn w-100 text-start mt-3 p-3 create-test-btn" id="create-test-btn">
+            <i class="bi bi-pencil-fill me-2"></i>
+            Create Test
+          </button>
+          {% endif %}
+          <div class="btn-group-vertical d-flex">
+            <button class="btn tab-btn text-start" id="all-tests-btn-sidebar" data-type="all">
+              <i class="bi bi-list"></i>
+              &nbsp; All Tests
+            </button>
+            <button class="btn tab-btn text-start" id="attempted-tests-btn-sidebar" data-type="attempted">
+              <i class="bi bi-check-circle me-2"></i>
+              Attempted Tests
+            </button>
+            {% if session["role"] == "ADMIN" %}
+              <button class="btn tab-btn text-start" id="created-tests-btn-sidebar" data-type="created">
+                <i class="bi bi-pencil-square me-2"></i>
+                Created Tests
+              </button>
+            {% endif %}
+
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% block js %}
+<script src="../static/javascript/index.js"> </script>
+{% endblock %}
+
+{% endblock %}
+

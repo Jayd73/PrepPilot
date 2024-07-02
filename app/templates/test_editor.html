@@ -1,121 +1,110 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Test Editor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link rel="stylesheet" type = "text/css" href = "../static/style/style_base.css">
-    <link rel="stylesheet" type = "text/css" href = "../static/style/style_test_editor.css">
-    
-    <link rel="apple-touch-icon" sizes="180x180" href="../static/images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
-    <link rel="manifest" href="../static/images/site.webmanifest">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-</head>
-  <body>
-    <nav class="navbar primary-col-1">
-        <a class="navbar-brand" href="/">
-          <img src="../static/images/PrepPilot name with logo.png" width="150vh">
-        </a>
-    </nav>
-<!-- Start -->
-      <div class="container col-md-6 mt-5">
-        <h2>Test Editor</h2>
-        <form id="test-edit-form" class="mt-3">
-          <div class="input-group mb-2">
-            <span class="input-group-text" id="test-title-span">Test title</span>
-            <textarea name="test-title" id="test-title" rows="1" class="form-control" placeholder="Enter test title" aria-label="Test title" aria-describedby="test-title-span"></textarea>
-            <div class="invalid-feedback mb-1" id="invalid-test-title"></div>
-          </div>
-          
-          <textarea name="test-description" placeholder="Enter test description (optional)" class="form-control mb-2"></textarea>
-          <div class="row">
-            <div class="col-md-6 position-relative mb-2">
-              <div class="input-group">
-                <span class="input-group-text">Topic</span>
-                <input type="text" name="test-subject" id="test-subject" class="form-control" placeholder="Enter topic" autocomplete="off"/>
-              </div>
-              <div class="invalid-feedback mb-1" id="invalid-test-subject"></div>
-              <div id="subject-dropdown" class="dropdown-menu w-100"></div>
-            </div>
-          </div>
-          
-          <div class="row mb-2">
-          <div class="col-xl-6 mt-2">
-              <label for="duration-inp-grp" class="form-label">Duration</label>
-            <div class="input-group" id="test-duration-inp-grp">
-              <span class="input-group-text">Hr</span>
-              <input type="number" name="test-duration-hr" id="test-duration-hr" min="0" step="1" class="form-control" placeholder="00" oninput="checkValue(this)"
-                onkeydown="validateInput(event)"/>
-              <span class="input-group-text">Min.</span>
-              <input type="number" name="test-duration-min" id="test-duration-min" min="0" step="1" class="form-control" placeholder="00" oninput="checkValue(this)"
-                onkeydown="validateInput(event)"/>
-              <span class="input-group-text">Sec.</span>
-              <input type="number" name="test-duration-sec" id="test-duration-sec" min="0" step="1" class="form-control" placeholder="00" oninput="checkValue(this)"
-                onkeydown="validateInput(event)"/>
-            </div>
-            <div class="invalid-feedback mb-1" id="invalid-test-duration"></div>
-          </div>
-          </div>
+{% extends "base.html" %}
 
-          <div class="row mb-2">
-            <div class="col-xl-6 mt-2">
-              <label for="def-marks-inp-grp" class="form-label">Default marks for new Questions</label>
-              <div class="input-group">
-                <span class="input-group-text">Pos.</span>
-                <input type="number" name="def-marks-pos" id="def-marks-pos" min="0" step="1" class="form-control"
-                  placeholder="00" onkeydown="validateInput(event)" oninput="handleDefMarks(this)" />
-                <span class="input-group-text">Neg.</span>
-                <input type="number" name="def-marks-neg" id="def-marks-neg" min="0" step="1" class="form-control"
-                  placeholder="00" onkeydown="validateInput(event)" oninput="handleDefMarks(this)"/>
-              </div>
-            </div>
-          </div>
+{% block title %}
+Test Editor
+{% endblock %}
 
-          <div class="mt-3" id="question-container"></div>
-          <div class="row mb-3 justify-content-center">
-            <div class="col-md-6">
-              <button type="button" class="btn btn-primary w-100 mt-1" id="add-mcq">
-                <i class="bi bi-plus-lg"></i>
-                MCQ
-              </button>
-            </div>
-            <div class="col-md-6">
-              <button type="button" class="btn btn-primary w-100 mt-1" id="add-response-question">
-                <i class="bi bi-plus-lg"></i>
-                Response Question
-              </button>
-            </div>
-          </div>
+{% block css %}
+<link rel="stylesheet" type="text/css" href="../static/style/style_test_editor.css">
+{% endblock %}
 
-          <div class="row d-flex justify-content-center mb-3">
-            <div class="col-12" style="width: max-content;">
-              <div class="input-group">
-                <span class="input-group-text">Total marks</span>
-                <span class="input-group-text primary-col-2" id="tot-test-marks">00</span>
-              </div>
-            </div>
-          </div>
+{% block main %}
+<div class="container col-md-6 mt-5">
+  <h2>Test Editor</h2>
+  <form id="test-edit-form" class="mt-3">
+    <div class="input-group mb-2">
+      <span class="input-group-text" id="test-title-span">Test title</span>
+      <textarea name="test-title" id="test-title" rows="1" class="form-control" placeholder="Enter test title"
+        aria-label="Test title" aria-describedby="test-title-span"></textarea>
+      <div class="invalid-feedback mb-1" id="invalid-test-title"></div>
+    </div>
 
-          <div class="row justify-content-center">
-            <div class="col-md-8">
-              <button type="submit" id="save_btn" class="btn btn-success w-100">
-                <i class="bi bi-bookmark-fill"></i>
-                Save Test
-              </button>
-            </div>
-          </div>
-          </div>
-        
-        </form>
+    <textarea name="test-description" placeholder="Enter test description (optional)"
+      class="form-control mb-2"></textarea>
+    <div class="row">
+      <div class="col-md-6 position-relative mb-2">
+        <div class="input-group">
+          <span class="input-group-text">Topic</span>
+          <input type="text" name="test-subject" id="test-subject" class="form-control" placeholder="Enter topic"
+            autocomplete="off" />
+        </div>
+        <div class="invalid-feedback mb-1" id="invalid-test-subject"></div>
+        <div id="subject-dropdown" class="dropdown-menu w-100"></div>
       </div>
-<!-- End -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
-<script src="../static/javascript/base.js"> </script>
-<script src="../static/javascript/test_editor.js"> </script>
+    </div>
 
-</body>
-</html>
+    <div class="row mb-2">
+      <div class="col-xl-6 mt-2">
+        <label for="duration-inp-grp" class="form-label">Duration</label>
+        <div class="input-group" id="test-duration-inp-grp">
+          <span class="input-group-text">Hr</span>
+          <input type="number" name="test-duration-hr" id="test-duration-hr" min="0" step="1" class="form-control"
+            placeholder="00" oninput="checkValue(this)" onkeydown="validateInput(event)" />
+          <span class="input-group-text">Min.</span>
+          <input type="number" name="test-duration-min" id="test-duration-min" min="0" step="1" class="form-control"
+            placeholder="00" oninput="checkValue(this)" onkeydown="validateInput(event)" />
+          <span class="input-group-text">Sec.</span>
+          <input type="number" name="test-duration-sec" id="test-duration-sec" min="0" step="1" class="form-control"
+            placeholder="00" oninput="checkValue(this)" onkeydown="validateInput(event)" />
+        </div>
+        <div class="invalid-feedback mb-1" id="invalid-test-duration"></div>
+      </div>
+    </div>
+
+    <div class="row mb-2">
+      <div class="col-xl-6 mt-2">
+        <label for="def-marks-inp-grp" class="form-label">Default marks for new Questions</label>
+        <div class="input-group">
+          <span class="input-group-text">Pos.</span>
+          <input type="number" name="def-marks-pos" id="def-marks-pos" min="0" step="1" class="form-control"
+            placeholder="00" onkeydown="validateInput(event)" oninput="handleDefMarks(this)" />
+          <span class="input-group-text">Neg.</span>
+          <input type="number" name="def-marks-neg" id="def-marks-neg" min="0" step="1" class="form-control"
+            placeholder="00" onkeydown="validateInput(event)" oninput="handleDefMarks(this)" />
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3" id="question-container"></div>
+    <div class="row mb-3 justify-content-center">
+      <div class="col-md-6">
+        <button type="button" class="btn btn-primary w-100 mt-1" id="add-mcq">
+          <i class="bi bi-plus-lg"></i>
+          MCQ
+        </button>
+      </div>
+      <div class="col-md-6">
+        <button type="button" class="btn btn-primary w-100 mt-1" id="add-response-question">
+          <i class="bi bi-plus-lg"></i>
+          Response Question
+        </button>
+      </div>
+    </div>
+
+    <div class="row d-flex justify-content-center mb-3">
+      <div class="col-12" style="width: max-content;">
+        <div class="input-group">
+          <span class="input-group-text">Total marks</span>
+          <span class="input-group-text primary-col-2" id="tot-test-marks">00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <button type="submit" id="save_btn" class="btn secondary-col-1 w-100">
+          <i class="bi bi-bookmark-fill"></i>
+          Save Test
+        </button>
+      </div>
+    </div>
+</div>
+
+</form>
+</div>
+
+{% block js %}
+<script src="../static/javascript/test_editor.js"> </script>
+{% endblock %}
+
+{% endblock %}

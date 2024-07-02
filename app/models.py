@@ -7,10 +7,6 @@ QTYPE_MCQ = "MCQ"
 QTYPE_MSQ = "MSQ"
 QTYPE_RESP = "RESP"
 
-# After making any changes to below models, run following in the terminal to migrate and upgrade:
-# flask db migrate
-# flask db upgrade
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -19,7 +15,7 @@ class User(db.Model):
     role = db.Column(db.String(10), nullable=False, default = TYPE_REGULAR_USER)  # 'reg user' or 'admin'
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     avatar_path = db.Column(db.String(255), unique=True)
-
+    
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -33,6 +29,8 @@ class Test(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     marks = db.Column(db.Integer)
+    last_updated = db.Column(db.DateTime, default=db.func.current_timestamp())
+    questions = db.relationship('Question', cascade='all, delete-orphan', backref='test', lazy=True)
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +40,7 @@ class Question(db.Model):
     marks_pos = db.Column(db.Integer, nullable=False)
     marks_neg = db.Column(db.Integer, nullable=False)
     image_path = db.Column(db.String(255), unique=True)
+    options = db.relationship('QuestionOption', cascade='all, delete-orphan', backref='question', lazy=True)
 
 class QuestionOption(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,10 +52,9 @@ class UserTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     test_id = db.Column(db.Integer, db.ForeignKey('test.id'), nullable=False)
-    start_time = db.Column(db.DateTime)
-    end_time = db.Column(db.DateTime)
-    score = db.Column(db.Integer)
-    duration_seconds = db.Column(db.Integer)
+    last_attempted_start_time = db.Column(db.DateTime)
+    best_score_attempt_start_time = db.Column(db.DateTime)
+    best_score_duration_seconds = db.Column(db.Integer)
     best_score = db.Column(db.Integer)
     attempts = db.Column(db.Integer)
     db.UniqueConstraint('user_id', 'test_id')

@@ -1,9 +1,25 @@
+.bg-light{
+    background-color: #f6f8fc;
+}
+
 .primary-col-1{
     background-color: #80C4E9;
 }
 
 .primary-col-2{
     background-color: #FFF6E9;
+    color: #0b052b;
+}
+
+button.primary-col-2:hover {
+    background-color: #f0f1f7;
+    border-color: #f0f1f7;
+    color: #0b052b;
+}
+
+button.primary-col-2:active {
+    background-color: #afcdfc;
+    border-color: #afcdfc;
     color: #0b052b;
 }
 
@@ -22,12 +38,13 @@ button.secondary-col-1:disabled {
 button.secondary-col-1:hover {
     background-color: #422fa3; 
     border-color: #422fa3;
-    color: white;
+    color: whitesmoke;
 }
 
 button.secondary-col-1:active {
     background-color: #372591; 
     border-color: #372591;
+    color: whitesmoke;
 }
 
 .secondary-col-2{
@@ -62,4 +79,53 @@ body{
 .toast-container{
     max-height: 40%;
     z-index: 100;
+}
+
+#userBox {
+    position: absolute;
+    display: none;
+    margin-top: 5px;
+    width: 50vh;
+    background-color: white;
+    z-index: 1000;
+    padding: 1vh;
+    border-radius: 8px;
+}
+
+#navbarAvatar{
+    width: 6vh;
+    height: 6vh;
+    object-fit: contain;
+    border-radius: 50%;
+    background-color: rgb(0, 0, 0);
+}
+
+#avatar {
+    width: 13vh;
+    height: 13vh;
+    border-radius: 50%;
+    object-fit: contain;
+    position: relative;
+    background-color: rgb(0, 0, 0);
+}
+
+#changeAvatarBtn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 4vh;
+    height: 4vh;
+    cursor: pointer;
+}
+
+:root {
+    --secondary-col-1-bg: #604CC3;
+    --secondary-col-1-col: #whitesmoke;
+    --secondary-col-1-bg-hover: #422fa3;
+    --primary-col-1-bg: #80C4E9;
+    --primary-col-2-bg: #FFF6E9;
 }

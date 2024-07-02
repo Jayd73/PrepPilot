@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         saveBtn.disabled = true
         saveBtn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saving... <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`
-        fetch('/test_editor/create', {
+        fetch('/tests', {
                 method: "POST",
                 body: testFormData,
             })
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     subjectInput.addEventListener('input', function() {
         const query = subjectInput.value;
         if (query.length > 0) {
-            fetch(`/search_subjects?query=${query}`)
+            fetch(`/subjects?query=${query}`)
                 .then(response => response.json())
                 .then(data => {
                     subjectDropdown.innerHTML = '';
@@ -174,12 +174,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // With ChatGPT
+    subjectInput.addEventListener('blur', function() {
+        // Delay hiding the dropdown to allow click event on dropdown items
+        setTimeout(() => {
+            subjectDropdown.classList.remove('show');
+            subjectDropdown.innerHTML = '';
+        }, 200);
+    });
+
 });
 
 let currQuestionPosMarks = null
 let currQuestionNegMarks = null
 
-    
 function addQuestion(type) {
     const questionContainer = document.getElementById('question-container');
     const randomNum = Math.random().toString(36).substr(2, 10);
@@ -367,6 +375,9 @@ function updateOptionNumbers() {
 }
 
 function checkValue(input) {
+    if (input.id === 'test-duration-hr') {
+        if (input.value > 999) input.value = 999;
+    }
     if (input.id === 'test-duration-min' || input.id === 'test-duration-sec') {
         if (input.value < 0) input.value = 0;
         if (input.value > 59) input.value = 59;
@@ -374,12 +385,7 @@ function checkValue(input) {
     input.value = toTwoDigitFormat(input.value)
 }
 
-function validateInput(event) {
-    const key = event.key;
-    if (['-', '.','e'].includes(key)) {
-        event.preventDefault();
-    }
-}
+
 
 // With help of ChatGPT
 function toTwoDigitFormat(numStr) {
