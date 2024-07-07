@@ -25,12 +25,12 @@
             {% block menu_btn %}{% endblock %}
         </div>
         
-        <div style = "width: 20vh;">
+        <div style = "width: 20vh; margin-right: 5.5%;">
             <a class="navbar-brand" href="/">
                 <img src="../static/images/PrepPilot name with logo.png" width="140vh">
             </a>
         </div>
-        <div class="d-none d-lg-block" style="margin-left: 11vh;">
+        <div class="d-none d-lg-block">
             {% block nav_content %}{% endblock %}
         </div>
         <div class="ms-auto d-flex align-items-center me-2 justify-content-end">
@@ -60,22 +60,22 @@
 
     {% block main %}{% endblock %}
 
-    <!-- Toast messages -->
+    <!-- Toast messages for when page loads -->
     {% with messages = get_flashed_messages(with_categories = true) %}
         {% if messages %}
             <div class="toast-container position-fixed bottom-0 end-0 p-3">
                 {% for category, message in messages %}
                     {% if category == "error" %}
-                        <div id="toast-message" class="toast align-items-center text-bg-danger border-0 shadow" role="alert"
+                        <div id="toast-message" class="toast align-items-center text-bg-danger border-0 shadow page-load-toast-message-container" role="alert"
                             aria-live="assertive" aria-atomic="true">
                     {% elif category == "warning" %}
-                        <div id="toast-message" class="toast align-items-center text-bg-warning border-0 shadow" role="alert"
+                        <div id="toast-message" class="toast align-items-center text-bg-warning border-0 shadow page-load-toast-message-container" role="alert"
                             aria-live="assertive" aria-atomic="true">
                     {% elif category == "success" %}
-                        <div id="toast-message" class="toast align-items-center text-bg-success border-0 shadow" role="alert"
+                        <div id="toast-message" class="toast align-items-center text-bg-success border-0 shadow page-load-toast-message-container" role="alert"
                             aria-live="assertive" aria-atomic="true">
                     {% else %}
-                        <div id="toast-message" class="toast align-items-center text-bg-primary border-0 shadow" role="alert"
+                        <div id="toast-message" class="toast align-items-center text-bg-primary border-0 shadow page-load-toast-message-container" role="alert"
                             aria-live="assertive" aria-atomic="true">
                     {% endif %}
                         <div class="d-flex">
@@ -91,7 +91,22 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Toast messages End -->
+    <!-- Toast messages on page load - End -->
+
+    <!-- Toast message without page load -->
+            <div class="toast-container position-fixed bottom-0 end-0 p-3" id="dynamic-toast-container">
+                <div class="toast align-items-center text-bg-primary border-0 shadow d-none" role="alert"
+                    aria-live="assertive" aria-atomic="true" id="dynamic-toast-message">
+                    <div class="d-flex">
+                        <div class="toast-body" id="dynamic-toast-message-body">
+                            <!-- Message -->
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+    <!-- Toast message without page load - End -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"

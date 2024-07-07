@@ -16,16 +16,144 @@
 {% endblock %}
 
 {% block nav_content %}
-
-  <div class="input-group d-flex justify-content-center align-items-center" style="width: 150%;">
-    <span class="input-group-text primary-col-2" id="search-icon">
-      <i class="bi bi-search"></i>
-    </span>
+<div class="search-bar-container" id="search-bar-container-long-width">
+  <!-- Search Bar  -->
+  <div class="input-group d-flex justify-content-center align-items-center" id="main-search-bar-container">
     <input type="text" id="seach-inp" class="form-control" placeholder="Search" aria-label="Search"
       aria-describedby="search-icon">
-    <button class="btn secondary-col-1" type="button" id="filter-btn-above"><i class="bi bi-sliders"></i></button>
-    <button class="btn secondary-col-1" type="button" id="sort-btn-above"><i class="bi bi-sort-down-alt"></i></button>
+    <button class="btn primary-col-1 search-btn" type="button"><i class="bi bi-search"></i></i></button>
+    <button class="btn secondary-col-1 filter-btn" id="filter-btn" data-bs-toggle="dropdown" aria-expanded="false"
+      type="button"><i class="bi bi-sliders"></i></button>
+    <div class="dropdown-menu dropdown-menu-start w-100 p-3" id="search-and-filter-options" aria-labelledby="filter-btn">
+      Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi, illum? Eveniet, necessitatibus earum numquam
+      laudantium doloremque ut quam aut fugiat ipsa a nemo commodi officiis ratione assumenda perspiciatis quas
+      consequatur mollitia, in nulla accusantium quia nisi labore tempora deserunt! Provident, libero illo? Obcaecati hic
+      repellat quia beatae sapiente libero fugiat laboriosam aperiam impedit soluta provident dolor optio magni atque,
+      iste ipsa quibusdam corrupti quidem culpa praesentium ea error maiores excepturi nisi! Ab possimus corrupti,
+      laudantium, minus aperiam quaerat libero eos accusantium aliquid quibusdam tempora temporibus est officiis veniam
+      porro illum perspiciatis dolorum saepe fugiat rerum, dolor exercitationem vitae neque beatae?
+  
+    </div>
+    <button class="btn secondary-col-1" id="sort-options-btn" data-bs-toggle="dropdown" aria-expanded="false" type="button"
+      style="border-radius: 0 6px 6px 0"><i class="bi bi-sort-down-alt"></i></button>
+    <ul class="dropdown-menu dropdown-menu-end" id="sort-opt-btns-list">
+      <div id="sort-opt-btns-container" style="max-height: 26vh; overflow: auto;">
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="title-sort-opt" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Title
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="subject-sort-opt" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Subject
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="marks-sort-opt" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Marks
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="duration-sort-top" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Duration
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="creation-sort-opt" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Created
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="updation-sort-opt" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Updated
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="popularity-sort-opt" type="button"
+          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          Popularity
+          <span>
+            <i class="bi bi-chevron-expand"></i>
+          </span>
+        </button>
+      </li>
+      <div id="attempted-tab-sort-opt-container" style="display: none;">
+        <li>
+          <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="attempts-sort-opt" type="button"
+            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            Attempts
+            <span>
+              <i class="bi bi-chevron-expand"></i>
+            </span>
+          </button>
+        </li>
+
+        <li>
+          <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="best-score-perc-sort-opt" type="button"
+            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            Best Score %
+            <span>
+              <i class="bi bi-chevron-expand"></i>
+            </span>
+          </button>
+        </li>
+
+        <li>
+          <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="best-score-time-perc-sort-opt" type="button"
+            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            Best Time %
+            <span>
+              <i class="bi bi-chevron-expand"></i>
+            </span>
+          </button>
+        </li>
+
+        <li>
+          <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="attempt-date-sort-opt" type="button"
+            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            Attempt Date
+            <span>
+              <i class="bi bi-chevron-expand"></i>
+            </span>
+          </button>
+        </li>
+      </div>
+      </div>
+      <li class="px-2 pt-2">
+        <button class="btn secondary-col-1 w-100" type="button" id="sort-btn">
+          <i class="bi bi-arrow-repeat"></i>
+          Sort
+        </button>
+      </li>
+    </ul>
   </div>
+  <!--Search bar end -->
+</div>
+
 
 {% endblock %}
 
@@ -42,18 +170,20 @@
     {% endif %}
       <div class="btn-group-vertical d-flex">
         <button class="btn tab-btn text-start" id="all-tests-btn"  data-type="all">
-          <i class="bi bi-list"></i>
+          <i class="bi bi-list-task"></i>
           &nbsp;
           All Tests
         </button>
         <button class="btn tab-btn text-start" id="attempted-tests-btn" data-type="attempted">
-          <i class="bi bi-check-circle me-2"></i>
+          <i class="bi bi-bar-chart"></i>
+          &nbsp;
           Attempted Tests
         </button>
 
         {% if session["role"] == "ADMIN" %}
           <button class="btn tab-btn text-start" id="created-tests-btn" data-type="created">
-            <i class="bi bi-pencil-square me-2"></i>
+            <i class="bi bi-pencil"></i>
+            &nbsp;
             Created Tests
           </button>
         {% endif %}
@@ -63,16 +193,8 @@
     <div class="col-md-10 content">
       <div class="row" id="top-bar" >
       <!-- Seach Bar for lesser width screen -->
-      <div class="d-lg-none" id="search-container-small-width">
-        <div class="input-group d-flex justify-content-center align-items-center" style="width: 100%;">
-          <span class="input-group-text primary-col-2" id="search-icon">
-            <i class="bi bi-search"></i>
-          </span>
-          <input type="text" id="seach-inp" class="form-control" placeholder="Search" aria-label="Search"
-            aria-describedby="search-icon">
-          <button class="btn secondary-col-1" type="button" id="filter-btn-above"><i class="bi bi-sliders"></i></button>
-          <button class="btn secondary-col-1" type="button" id="sort-btn-above"><i class="bi bi-sort-down-alt"></i></button>
-        </div>
+      <div class="d-lg-none search-bar-container" id="search-bar-container-short-width">
+        <!-- Search Bar  -->
       </div>
       <!-- Search Bar lesser width end -->
 
@@ -84,29 +206,31 @@
 
           <div id="pagination-nav" class="d-flex align-items-center justify-content-between">
             
-            <div class="form-check" id="select-all-checkbox" style="width: max-content; transform: scale(1.2); margin-left: 4px; visibility: hidden; pointer-events: none;">
-              <input class="form-check-input" type="checkbox" id="select-all-cb">
-              <label class="form-check-label" for="select-all-cb" id="select-all-label">
-                Select All
-              </label>
+            <div class=" hidden-component" id="select-all-form" style="width: max-content;">
+                <input class="form-check-input" type="checkbox" id="select-all-cb" style="cursor: pointer; transform: scale(1.2); margin-bottom: 0.5vh;">
+                <span class="ms-2">
+                  <label class="form-check-label" for="select-all-cb" id="select-all-label" style="cursor: pointer;">
+                    Select All
+                  </label>
+                </span>
+              
             </div>
 
-            <ul class="pagination pagination-sm mt-2">
-              <!-- Pagination Content -->
-            </ul>
+            <div class="d-flex align-items-center justify-content-end" >
+              <button type="button" class="btn btn-danger hidden-component" id="bulk-delete-btn" data-bs-toggle="modal" data-bs-target="#deleteAllConfirmationModal" style="margin-right: 1vh;">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+              <ul class="pagination pagination-sm mt-3">
+                <!-- Pagination Content -->
+              </ul>
+            </div>
           </div>
         </div>
       </div>
       
       <!--Pagination End-->
 
-      <div class="test-row-container mb-3" id="test-row-container">
-      
-        <!-- Rows of test details -->
-     
-      </div>
-
-      
+      <div class="test-row-container mb-3" id="test-row-container"><!-- Rows of test details --></div>
       
     </div>
 </div>
@@ -114,11 +238,10 @@
 <!-- Go To Page input-->
 <div class="input-group d-none shadow position-fixed" id="goto-page-container" style="width: 18vh; min-width: 18vh;z-index: 600;">
   <input id="goto-page-inp" type="number" class="form-control" placeholder="Go to" aria-label="goto-page"
-    aria-describedby="goto-span" onkeydown="validateInput(event)" oninput="capInpVal(this, 1, 10000)">
+    aria-describedby="goto-span" onkeydown="validateInput(event)" oninput="capInpVal(this, 1, 10000000)">
   <button class="btn btn-primary" id="goto-page-btn" type="button">Go</button>
 </div>
 <!-- Go To Page input end -->
-
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel" style="width: 70%; max-width: 40vh; min-width: 30vh;">
   <div class="offcanvas-header">
@@ -137,21 +260,23 @@
           {% endif %}
           <div class="btn-group-vertical d-flex">
             <button class="btn tab-btn text-start" id="all-tests-btn-sidebar" data-type="all">
-              <i class="bi bi-list"></i>
-              &nbsp; All Tests
+              <i class="bi bi-list-task"></i>
+              &nbsp;
+              All Tests
             </button>
             <button class="btn tab-btn text-start" id="attempted-tests-btn-sidebar" data-type="attempted">
-              <i class="bi bi-check-circle me-2"></i>
+              <i class="bi bi-bar-chart"></i>
+              &nbsp;
               Attempted Tests
             </button>
             {% if session["role"] == "ADMIN" %}
               <button class="btn tab-btn text-start" id="created-tests-btn-sidebar" data-type="created">
-                <i class="bi bi-pencil-square me-2"></i>
+                <i class="bi bi-pencil"></i>
+                &nbsp;
                 Created Tests
               </button>
             {% endif %}
 
-            
           </div>
         </div>
       </div>
@@ -159,6 +284,203 @@
   </div>
 </div>
 
+<div class="modal fade" id="test-detail-modal" tabindex="-1" aria-labelledby="test-detail-title" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" id="test-modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="test-detail-title">
+          <i class="bi bi-info-circle-fill"></i>
+          Test Details
+        </h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-12 fs-5 mb-2" id="test-title-modal">
+              <!-- Test title -->
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12 primary-col-2 test-subject mb-2" id="test-subject-modal" style="padding: 1vh; padding-inline: 2vh; width: max-content;">
+              <!-- Test subject -->
+            </div>
+          </div>
+          <div class="row d-flex justify-content-start align-items-center mb-2">
+            <div class="col-md-3 col-6" id="test-marks-modal">
+              <!-- Test marks -->
+            </div>
+            <div class="col-md-5 col-6" id="test-duration-modal">
+              <!-- Test duration -->
+            </div>
+          </div>
+
+          <div id="test-extra-details" style="display: none;">
+
+          <div class="row">
+            <div class="col-12 mb-2" id="test-description-modal" style="max-height: 196px; overflow: auto; display: none;">
+              <!-- Test description -->
+            </div>
+          </div>
+
+          <div class="row mb-2 d-flex justify-content-start align-items-center">
+            <div class="col-md-3 pe-md-1" style="width: max-content;">
+              <i class="bi bi-calendar-check"></i>
+              Last updated on
+            </div>
+            <div class="col-md-9 col-12 ps-lg-0" id="test-last-updated-time-modal"  style="width: max-content;">
+              <!-- Test last updated time -->
+            </div>
+          </div>
+
+          <div class="row mb-1 d-flex justify-content-start align-items-center">
+            <div class="col-1" style="width: max-content;">
+              <img id="author-avatar-modal" src="../static/images/placeholder_avatar.png" alt="Author Avatar">
+            </div>
+            <div class="col-11" style="width: max-content;">
+              
+              <div class="row">
+                <div class="col-12 ps-0 mt-0" id="test-author-modal" style="width: max-content; overflow-wrap: break-word;">
+                  <!-- Test author name -->
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-12 ps-0" style="font-size: 1.5vh;">
+                  <i class="bi bi-person-fill"></i>
+                  Author 
+                </div>
+              </div>
+            </div>
+          </div>
+             
+          </div> <!-- test extra details -->
+
+          <div id="test-attempt-details" style="display: none;">
+            <div class="row mb-2" >
+              <div class="col-12" id="test-attempts-modal">
+                <!-- Attempts -->
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-md-5 col-6" id="test-best-score-modal">
+                <!-- Best Score -->
+              </div>
+
+              <div class="col-6" id="test-best-score-perc-modal">
+                <!-- Best Score Percentage -->
+              </div>
+              </div>
+
+              <div class="row mb-2">
+              <div class="col-12" id="test-best-score-duration-modal">
+                <!-- Best Score Duration -->
+              </div>
+            </div>
+
+            <div class="row mb-2 d-flex justify-content-start align-items-center">
+              <div class="col-md-3 pe-md-1" style="width: max-content;">
+                <i class="bi bi-calendar-event"></i>
+                Best score achieved on
+              </div>
+              <div class="col-md-9 col-12 ps-lg-0" id="test-best-score-achieved-time-modal" style="width: max-content;">
+                <!-- Test last updated time -->
+              </div>
+            </div>
+
+            <div class="row mb-2 d-flex justify-content-start align-items-center">
+              <div class="col-md-3 pe-md-1" style="width: max-content;">
+                <i class="bi bi-calendar-event"></i>
+                Last Attempted on
+              </div>
+              <div class="col-md-9 col-12 ps-lg-0" id="test-last-attempted-time-modal" style="width: max-content;">
+                <!-- Test last updated time -->
+              </div>
+            </div>
+
+          </div>
+          
+
+        </div>
+      </div>
+
+      <div id="test-details-modal-footer" class="modal-footer d-flex justify-content-end align-items-center">
+        <button id="delete-btn-modal" type="button" class="btn btn-danger hidden-component" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal">Delete</button>
+        <button id="update-test-btn-modal" type="button" class="btn secondary-col-1" style="display: none;"><i class="bi bi-pencil-square"></i>&nbsp;Edit Test</button>
+        <button id="take-test-btn-modal" type="button" class="btn secondary-col-1"><i class="bi bi-list-task"></i> &nbsp;Take test</button>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteConfirmationModalLabel">Delete Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        Are you sure you want to delete this item?
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#test-detail-modal">
+          <i class="bi bi-x-lg"></i>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="delete-confirm-btn">
+          <i class="bi bi-trash-fill"></i>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- With help from ChatGPT-->
+<!-- Delete All Confirmation -->
+<div class="modal fade" id="deleteAllConfirmationModal" tabindex="-1" aria-labelledby="deleteAllConfirmationModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteAllConfirmationModalLabel">Delete Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        Are you sure you want to delete all selected items?
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i>
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="bulk-delete-confirm-btn" >
+          <i class="bi bi-trash-fill"></i>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Fetching data animation modal -->
+<div></div>
 
 
 {% block js %}
@@ -166,4 +488,7 @@
 {% endblock %}
 
 {% endblock %}
+
+
+<!-- style="border: black 1px solid;" -->
 

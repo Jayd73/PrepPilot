@@ -10,7 +10,7 @@
 @media only screen and (max-width: 786px) {
     .box-area{
         margin-inline: 10px;
-        height: 90vh;
+        height: 70%;
     }
 
     .left-box{

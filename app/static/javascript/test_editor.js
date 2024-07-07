@@ -1,11 +1,72 @@
+let currQuestionPosMarks = null
+let currQuestionNegMarks = null
+
 // Created in collaboration with ChatGPT
 document.addEventListener('DOMContentLoaded', () => {
-    
     const addMCQButton = document.getElementById('add-mcq');
     const addResponseQuestionButton = document.getElementById('add-response-question');
 
     addMCQButton.addEventListener('click', () => addQuestion('mcq'));
     addResponseQuestionButton.addEventListener('click', () => addQuestion('response'));
+
+    if (updateTestId) {
+        fetch(`/tests/${updateTestId}`)
+            .then(response => response.json().then(data => ({
+                status: response.status,
+                body: data
+            })))
+            .then(({
+                status,
+                body
+            }) => {
+                setUpTestEditorForUpdation(body)
+            })
+    }
+
+    // Autocomplete subjects suggestion (took help from ChatGPT)
+    const subjectInput = document.getElementById('test-subject');
+    const subjectDropdown = document.getElementById('subject-dropdown');
+
+    subjectInput.addEventListener('input', function() {
+        const query = subjectInput.value;
+        if (query.length > 0) {
+            fetch(`/subjects?query=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    subjectDropdown.innerHTML = '';
+                    if (data.length > 0) {
+                        subjectDropdown.classList.add('show');
+                        data.forEach(subject => {
+                            const dropdownItem = document.createElement('a');
+                            dropdownItem.classList.add('dropdown-item');
+                            dropdownItem.textContent = subject;
+                            dropdownItem.href = '#';
+                            dropdownItem.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                subjectInput.value = subject;
+                                subjectDropdown.classList.remove('show');
+                            });
+                            subjectDropdown.appendChild(dropdownItem);
+                        });
+                    } else {
+                        subjectDropdown.classList.remove('show');
+                    }
+                });
+        } else {
+            subjectDropdown.classList.remove('show');
+            subjectDropdown.innerHTML = '';
+        }
+    });
+
+    // With ChatGPT
+    subjectInput.addEventListener('blur', function() {
+        // Delay hiding the dropdown to allow click event on dropdown items
+        setTimeout(() => {
+            subjectDropdown.classList.remove('show');
+            subjectDropdown.innerHTML = '';
+        }, 200);
+    });
+        
 
     document.getElementById('test-edit-form').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -121,6 +182,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         saveBtn.disabled = true
         saveBtn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saving... <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>`
+        
+        if (updateTestId) {
+            fetch(`tests/${updateTestId}`, {
+                method: "PUT",
+                body: testFormData,
+            })
+            .then(response => response.json().then(data => ({
+                status: response.status,
+                body: data
+            })))
+            .then(({
+                status,
+                body
+            }) => {
+                saveBtn.disabled = false
+                saveBtn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Save`
+                window.location.href = "/";
+            })
+            return
+        }
+        
         fetch('/tests', {
                 method: "POST",
                 body: testFormData,
@@ -139,56 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
             })
     });
 
-    // Autocomplete subjects suggestion (took help from ChatGPT)
-    const subjectInput = document.getElementById('test-subject');
-    const subjectDropdown = document.getElementById('subject-dropdown');
-
-    subjectInput.addEventListener('input', function() {
-        const query = subjectInput.value;
-        if (query.length > 0) {
-            fetch(`/subjects?query=${query}`)
-                .then(response => response.json())
-                .then(data => {
-                    subjectDropdown.innerHTML = '';
-                    if (data.length > 0) {
-                        subjectDropdown.classList.add('show');
-                        data.forEach(subject => {
-                            const dropdownItem = document.createElement('a');
-                            dropdownItem.classList.add('dropdown-item');
-                            dropdownItem.textContent = subject;
-                            dropdownItem.href = '#';
-                            dropdownItem.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                subjectInput.value = subject;
-                                subjectDropdown.classList.remove('show');
-                            });
-                            subjectDropdown.appendChild(dropdownItem);
-                        });
-                    } else {
-                        subjectDropdown.classList.remove('show');
-                    }
-                });
-        } else {
-            subjectDropdown.classList.remove('show');
-            subjectDropdown.innerHTML = '';
-        }
-    });
-
-    // With ChatGPT
-    subjectInput.addEventListener('blur', function() {
-        // Delay hiding the dropdown to allow click event on dropdown items
-        setTimeout(() => {
-            subjectDropdown.classList.remove('show');
-            subjectDropdown.innerHTML = '';
-        }, 200);
-    });
-
 });
 
-let currQuestionPosMarks = null
-let currQuestionNegMarks = null
-
-function addQuestion(type) {
+function addQuestion(type, questionText = "", answerText = "", imageUrl="", posMarks="", negMarks="") {
     const questionContainer = document.getElementById('question-container');
     const randomNum = Math.random().toString(36).substr(2, 10);
     const questionCount = questionContainer.children.length + 1;
@@ -223,18 +258,18 @@ function addQuestion(type) {
                 <div class="input-group" style="width: 50vh">
                     <span class="input-group-text">Marks</span>
                     <span class="input-group-text">Pos.</span>
-                    <input type="number" name="marks-pos-${questionId}" id="marks-pos-${questionId}" min="0" step="1" class="form-control" placeholder="00"
+                    <input type="number" name="marks-pos-${questionId}" id="marks-pos-${questionId}" value="${posMarks}" min="0" step="1" class="form-control" placeholder="00"
                         onkeydown="validateInput(event)" oninput="handleMarksPosInp(this)"/>
                     <span class="input-group-text">Neg.</span>
-                    <input type="number" name="marks-neg-${questionId}" id="marks-neg-${questionId}" min="0" step="1" class="form-control" placeholder="00"
+                    <input type="number" name="marks-neg-${questionId}" id="marks-neg-${questionId}" value="${negMarks}" min="0" step="1" class="form-control" placeholder="00"
                         onkeydown="validateInput(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
                 </div>
             </div>
             <div class="card-body">
-            <textarea name="${questionId}" placeholder="Enter question" class = "form-control"></textarea>
+            <textarea name="${questionId}" placeholder="Enter question" class = "form-control">${questionText}</textarea>
             <div class="invalid-feedback" id="invalid-question-${questionId}"></div>
             <div class="position-relative mt-2 question-img-box" id="img-box-${questionId}" >
-            <img class="question-img"  id="img-${questionId}" src="" alt="Question Image" />
+            <img class="question-img"  id="img-${questionId}" src="${imageUrl}" alt="Question Image" />
             <div class="input-group-append">
                 <button type="button" class="position-absolute shadow btn btn-danger fixed-ht" onclick="removeQuestionImage('${questionId}')"
                     style = "right: 0;top: 0; border-radius: 0 6px 0 6px;">
@@ -255,7 +290,7 @@ function addQuestion(type) {
         `;
     } else {
         questionHTML += `
-            <input type="text" name="resp-ans-${questionId}" class="form-control mt-2 resp-ans" placeholder="Enter answer" />
+            <input type="text" name="resp-ans-${questionId}" value = "${answerText}" class="form-control mt-2 resp-ans" placeholder="Enter answer" />
             <div class="invalid-feedback" id="invalid-resp-ans-${questionId}"></div>
         `;
     }
@@ -278,25 +313,29 @@ function addQuestion(type) {
     }
 
     // At least need 2 options for MCQ question
-    if (type === 'mcq') {
+    if (questionText === "" && type === 'mcq') {
         addOption(questionId)
         addOption(questionId)
     }
+
+    return questionId
 }
 
-function addOption(questionId) {
+function addOption(questionId, optionText = "", isChecked = false) {
     const optionsContainer = document.querySelector(`#${questionId} .options-container`);
     const optionId = `option-${Math.random().toString(36).substr(2, 10)}-${questionId}`;
     const optionCount = optionsContainer.children.length + 1;
     const optionElement = document.createElement('div');
+    const optionChecked = isChecked ? 'checked' : ''
+
     optionElement.classList.add('input-group', 'mb-2', 'option');
     optionElement.setAttribute('id', optionId);
 
     optionElement.innerHTML = `
     <div class="input-group">
-        <input type="checkbox" name="cb-${optionId}" class="form-check-input" style = "height: 4vh; width: 4vh"/>
+        <input type="checkbox" name="cb-${optionId}" class="form-check-input" ${optionChecked} style = "height: 4vh; width: 4vh"/>
         <span class="input-group-text">${optionCount}.</span>
-        <input type="text" name=${optionId} class="form-control" placeholder="Enter option" />
+        <input type="text" name=${optionId} value="${optionText}" class="form-control" placeholder="Enter option" />
         <button type="button" class="btn btn-danger" onclick="removeOption('${optionId}')">
             <i class="bi bi-trash-fill"></i>
         </button>
@@ -386,23 +425,6 @@ function checkValue(input) {
 }
 
 
-
-// With help of ChatGPT
-function toTwoDigitFormat(numStr) {
-    // if string only contains 0's
-    numStr = numStr.toString()
-    if (/^0*$/.test(numStr)) { 
-        return ""
-    }
-    if (numStr.length < 2) {
-        return numStr.padStart(2, '0');
-    }
-    if (numStr.length > 2 && numStr[0] == 0) { 
-        return numStr.substring(1)
-    }
-    return numStr
-}
-
 function setDefaultMarks() { 
     const posMarks = document.getElementById("def-marks-pos").value
     const negMarks = document.getElementById("def-marks-neg").value
@@ -436,5 +458,46 @@ function updateTotalTestMarks() {
         }
     })
     testTotalMarksSpan.innerHTML = totTestMarks == 0 ? "00" : toTwoDigitFormat(totTestMarks)
+}
+
+function setUpTestEditorForUpdation(testData) {
+    document.getElementById('test-title').value = testData.title
+    document.getElementById('test-description').value = testData.description
+    document.getElementById('test-subject').value = testData.subject
+    const { hours, minutes, remainingSeconds } = convertDuration(testData.duration_seconds);
+    document.getElementById('test-duration-hr').value = toTwoDigitFormat(hours)
+    document.getElementById('test-duration-min').value = toTwoDigitFormat(minutes)
+    document.getElementById('test-duration-sec').value = toTwoDigitFormat(remainingSeconds)
+    document.getElementById('def-marks-pos').value = toTwoDigitFormat(testData.questions[0].marks_pos)
+    document.getElementById('def-marks-neg').value = toTwoDigitFormat(testData.questions[0].marks_neg)
+    document.getElementById('tot-test-marks').innerHTML = toTwoDigitFormat(testData.total_marks)
+
+    testData.questions.forEach(question => {
+        const questionType = question.question_type === "RESP" ? 'response' : 'mcq'
+        const imgUrl = question.image_path ? question.image_path : ""
+        const answerText = questionType === 'response' ? question.options[0].option_text : ""
+        
+        const questionID = addQuestion(
+            questionType,
+            question.question_text,
+            answerText,
+            imgUrl,
+            toTwoDigitFormat(question.marks_pos),
+            toTwoDigitFormat(question.marks_neg)
+        )
+        if (questionType === 'mcq') {
+            question.options.forEach(option => {
+                addOption(questionID, option.option_text, option.is_correct)
+            })
+        }
+        if (imgUrl !== "") {
+            document.getElementById(`img-box-${questionID}`).style.display = 'block';
+
+        }
+    })
+
+    currQuestionPosMarks = testData.questions[0].marks_pos
+    currQuestionNegMarks = testData.questions[0].marks_neg
+
 }
 

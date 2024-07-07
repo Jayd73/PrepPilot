@@ -19,7 +19,7 @@ Test Editor
       <div class="invalid-feedback mb-1" id="invalid-test-title"></div>
     </div>
 
-    <textarea name="test-description" placeholder="Enter test description (optional)"
+    <textarea name="test-description" id="test-description" placeholder="Enter test description (optional)"
       class="form-control mb-2"></textarea>
     <div class="row">
       <div class="col-md-6 position-relative mb-2">
@@ -104,6 +104,10 @@ Test Editor
 </div>
 
 {% block js %}
+<script type="text/javascript">
+  var updateTestId = '{{ update_test_id | tojson }}'
+  updateTestId = Number(updateTestId)
+</script>
 <script src="../static/javascript/test_editor.js"> </script>
 {% endblock %}
 

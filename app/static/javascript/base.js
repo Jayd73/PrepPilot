@@ -1,3 +1,5 @@
+var currToastBgColorClass = "text-bg-primary" 
+
 document.addEventListener('DOMContentLoaded', () => { 
     const maxUnameLen = 20
     fetch('/users/current-user')
@@ -20,11 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error fetching user details:', error);
     });
 
-    const toastMessageContainers = document.querySelectorAll('.toast')
-    toastMessageContainers.forEach((toastMessageContainer) => {
-        const toast = bootstrap.Toast.getOrCreateInstance(toastMessageContainer)
-        toast.show()
-    })
 
     const navbarAvatar = document.getElementById('navbarAvatar');
     const userBox = document.getElementById('userBox');
@@ -81,6 +78,13 @@ document.addEventListener('DOMContentLoaded', () => {
             userBox.style.display = 'none';
         }
     });
+
+    // Show any toast messages when page loads
+    const toastMessageContainers = document.querySelectorAll('.page-load-toast-message-container')
+    toastMessageContainers.forEach((toastMessageContainer) => {
+        const toast = bootstrap.Toast.getOrCreateInstance(toastMessageContainer)
+        toast.show()
+    })
 });
 
 function checkAndHandleEmptyInp(inp, invalidMsgBox, invalidMsg) { 
@@ -108,4 +112,77 @@ function capInpVal(input, lowerLim, upperLim) {
     if (input.value < lowerLim) input.value = lowerLim;
     if (input.value > upperLim) input.value = upperLim;
 }
- 
+
+// With help of ChatGPT
+function toTwoDigitFormat(num) {
+    // if string only contains 0's
+    let numStr = num.toString()
+    if (/^0*$/.test(numStr)) { 
+        return ""
+    }
+    if (numStr.length < 2) {
+        return numStr.padStart(2, '0');
+    }
+    if (numStr.length > 2 && numStr[0] == 0) { 
+        return numStr.substring(1)
+    }
+    return numStr
+}
+
+function convertDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    return { hours, minutes, remainingSeconds };
+}
+
+// From ChatGPT
+function formatDuration(seconds) {
+    let { hours, minutes, remainingSeconds } = convertDuration(seconds);
+
+    const hourText = hours === 1 ? 'Hour' : 'Hours';
+    const minuteText = minutes === 1 ? 'Minute' : 'Minutes';
+    const secondText = remainingSeconds === 1 ? 'Second' : 'Seconds';
+    
+    hours = toTwoDigitFormat(hours)
+    minutes = toTwoDigitFormat(minutes)
+    remainingSeconds = toTwoDigitFormat(remainingSeconds)
+
+    if (hours && minutes && remainingSeconds) {
+        return `${hours}h ${minutes}m ${remainingSeconds}s`;
+    } else if (hours && minutes) {
+        return `${hours} Hr. ${minutes} Min.`;
+    } else if (hours && remainingSeconds) {
+        return `${hours} Hr. ${remainingSeconds} Sec.`;
+    } else if (minutes && remainingSeconds) {
+        return `${minutes} Min. ${remainingSeconds} Sec.`;
+    } else if (hours) {
+        return `${hours} ${hourText}`;
+    } else if (minutes) {
+        return `${minutes} ${minuteText}`;
+    } else if (remainingSeconds) {
+        return `${remainingSeconds} ${secondText}`;
+    }
+    
+    return '';
+}
+
+function showToastMessage(message, messageType = "normal") {
+    const dynamicToastMsgContainer = document.getElementById('dynamic-toast-message')
+    dynamicToastMsgContainer.classList.remove('d-none')
+    document.getElementById('dynamic-toast-message-body').textContent = message
+    dynamicToastMsgContainer.classList.remove(currToastBgColorClass)
+    if (messageType === "normal")
+        currToastBgColorClass = "secondary-col-1"
+    else if (messageType === "success")
+        currToastBgColorClass = "text-bg-success"
+    else if (messageType === "warning")
+        currToastBgColorClass = "text-bg-warning"
+    else if (messageType === "danger")
+        currToastBgColorClass = "text-bg-danger"
+    else
+        currToastBgColorClass = "text-bg-primary"
+    dynamicToastMsgContainer.classList.add(currToastBgColorClass)
+    bootstrap.Toast.getOrCreateInstance(dynamicToastMsgContainer).show()
+}
