@@ -1,10 +1,10 @@
 from flask import flash, redirect, render_template, url_for, send_from_directory, session, jsonify, request, current_app as app
 from . import db, USER_ID, ROLE
 from .models import User, Subject, Test, Question, QuestionOption, UserTest, TYPE_REGULAR_USER, TYPE_ADMIN, QTYPE_MCQ, QTYPE_MSQ, QTYPE_RESP
-from .helpers import login_required, admin_privilege_required, check_password_hash, generate_hash, get_structured_inp_ids, safe_int, delete_existing_file
+from .helpers import login_required, admin_privilege_required, check_password_hash, generate_hash, get_structured_inp_ids, safe_int, delete_existing_file, get_val_or_default_val
 import os
 from datetime import datetime
-from sqlalchemy import func, exists
+from sqlalchemy import func, exists, or_, desc
 
 
 GET = 'GET'
@@ -20,16 +20,30 @@ NORMAL_MSG = "message"
 SUCCESS = "success"
 ERROR = "error"
 
+MESSAGES_SHOWN = "messages_shown"
+
 @app.route('/', methods=[GET])
 @login_required
 def index():
-    subquery = db.session.query(Test.id).subquery()
-    count = db.session.query(func.count(UserTest.id)).filter(
-        UserTest.user_id == session.get(USER_ID),
-        ~UserTest.test_id.in_(subquery)
-    ).scalar()
-    if count > 0:
-        flash(f'{count} of your attempted tests have been deleted', NORMAL_MSG)
+    if not session.get(MESSAGES_SHOWN):
+        user_id = session.get(USER_ID)
+        subquery = db.session.query(Test.id).subquery()
+        deleted_test_count = db.session.query(func.count(UserTest.id)).filter(
+            UserTest.user_id == user_id,
+            ~UserTest.test_id.in_(subquery)
+        ).scalar()
+
+        updated_test_count = (db.session.query(func.count(UserTest.id))
+                        .join(Test, UserTest.test_id == Test.id)
+                        .filter(UserTest.user_id == user_id)
+                        .filter(UserTest.last_attempted_start_time < Test.last_updated)
+                        ).scalar()
+        
+        if deleted_test_count > 0:
+            flash(f'{deleted_test_count} of your attempted tests have been deleted', NORMAL_MSG)
+        if updated_test_count > 0:
+            flash(f'{updated_test_count} of your attempted tests have been updated', NORMAL_MSG)
+        session[MESSAGES_SHOWN] = True
     return render_template("index.html")
 
 @app.route("/register", methods=[GET, POST])
@@ -96,6 +110,7 @@ def login():
 
         session[USER_ID] = user.id
         session[ROLE] = user.role
+        session[MESSAGES_SHOWN] = False
         return jsonify({SUCCESS: 'User logged in successfully'}), 200
     else:
         if session.get(USER_ID):
@@ -123,62 +138,180 @@ def display_test_editor():
 
 # Took help from ChatGPT
 @login_required
-@app.route('/tests', methods=[GET])
+@app.route('/tests', methods=[POST])
 def provide_test_details():
-    test_type = request.args.get('type', 'all')
-    page = int(request.args.get('page', 1))
-    per_page = int(request.args.get('per-page', 50))
+    filter_data = request.get_json()
     
+    #with help from ChatGPT
     user_id = session.get(USER_ID)
 
-    if test_type == 'all':
-        pagination = Test.query.paginate(page=page, per_page=per_page, error_out=False)
-    elif test_type == 'attempted':
-        pagination = UserTest.query.filter_by(user_id=user_id).paginate(page=page, per_page=per_page, error_out=False)
-    elif test_type == 'created':
-        pagination = Test.query.filter_by(created_by=user_id).paginate(page=page, per_page=per_page, error_out=False)
-    else:
-        return jsonify({ERROR: "Invalid query argument provided for fetching test details"}), 400
-    
-    if page > pagination.pages:
-        return jsonify({
-                            'tests': [],
-                            'total_pages': pagination.pages,
-                            'current_page': None
-                        }), 200
-    
-    tests_data = []
-    if test_type == 'attempted':
-        user_tests = pagination.items
-        tests = [Test.query.get(user_test.test_id) for user_test in user_tests]
+    test_type = filter_data.get('type', 'all')
+    page = int(filter_data.get('page', 1))
+    per_page = int(filter_data.get('per_page', 10))
+    sort_by = filter_data.get('sort_options', {}).get('sort_by', 'created_on')
+    sort_order = filter_data.get('sort_options', {}).get('sort_order', 'asc')
 
-        for user_test, test in zip(user_tests, tests):
+    search_text = filter_data.get('search_text', '')
+    search_in_title = filter_data.get('search_in_title', False)
+    search_in_subject = filter_data.get('search_in_subject', False)
+    search_in_description = filter_data.get('search_in_description', False)
+    
+    marks_lower = float(get_val_or_default_val(filter_data, 'marks_lower', 0))
+    marks_upper = float(get_val_or_default_val(filter_data, 'marks_upper', float('inf')))
+    creation_start = filter_data.get('creation_start')
+    creation_end = filter_data.get('creation_end')
+    updated_start = filter_data.get('updated_start')
+    updated_end = filter_data.get('updated_end')
+    duration_lower = float(get_val_or_default_val(filter_data, 'duration_lower', 0))
+    duration_upper = float(get_val_or_default_val(filter_data, 'duration_upper', float('inf')))
+
+    #for attempted tab:
+    attempts_lower = float(get_val_or_default_val(filter_data, 'attempts_lower', 0))
+    attempts_upper = float(get_val_or_default_val(filter_data, 'attempts_upper', float('inf')))
+    best_score_perc_lower = float(get_val_or_default_val(filter_data, 'best_score_perc_lower', 0))
+    best_score_perc_upper = float(get_val_or_default_val(filter_data, 'best_score_perc_upper', 100))
+    best_score_time_perc_lower = float(get_val_or_default_val(filter_data, 'best_score_time_perc_lower', 0))
+    best_score_time_perc_upper = float(get_val_or_default_val(filter_data, 'best_score_time_perc_upper', 100))
+    last_attempted_lower = filter_data.get('last_attempted_lower')
+    last_attempted_upper = filter_data.get('last_attempted_upper')
+
+
+    query = Test.query.filter(Test.created_by == user_id) if test_type == "created" else Test.query
+
+    if test_type == 'attempted':
+        user_test_query = UserTest.query.outerjoin(Test, UserTest.test_id == Test.id).filter(UserTest.user_id == user_id)
+        user_test_query = user_test_query.filter(UserTest.attempts >= attempts_lower)
+        user_test_query = user_test_query.filter(UserTest.attempts <= attempts_upper)
+    
+        user_test_query = user_test_query.filter(((UserTest.best_score / Test.marks * 100) >= best_score_perc_lower) | Test.id.is_(None))
+        user_test_query = user_test_query.filter(((UserTest.best_score / Test.marks * 100) <= best_score_perc_upper) | Test.id.is_(None))
+
+
+        user_test_query = user_test_query.filter(
+            ((UserTest.best_score_duration_seconds / Test.duration_seconds * 100) >= best_score_time_perc_lower)
+            | Test.id.is_(None)
+        )
+        user_test_query = user_test_query.filter(
+            ((UserTest.best_score_duration_seconds / Test.duration_seconds * 100) <= best_score_time_perc_upper)
+            | Test.id.is_(None)
+        )
+
+        if last_attempted_lower is not None:
+            user_test_query = user_test_query.filter(UserTest.last_attempted_start_time >= datetime.fromisoformat(last_attempted_lower))
+        if last_attempted_upper is not None:
+            user_test_query = user_test_query.filter(UserTest.last_attempted_start_time <= datetime.fromisoformat(last_attempted_upper))
+
+        query = user_test_query
+
+       
+    # Handle search word and fields to search in
+    search_conditions = []
+    if search_in_title:
+        search_conditions.append((Test.title.ilike(f'%{search_text}%'), Test.title))
+    if search_in_subject:
+        search_conditions.append((Subject.query.filter_by(id=Test.subject_id).filter(Subject.name.ilike(f'%{search_text}%')).exists(), Subject.name))
+    if search_in_description:
+        search_conditions.append((Test.description.ilike(f'%{search_text}%'), Test.description))
+    
+    if search_conditions:
+        combined_conditions = or_(*[cond[0] for cond in search_conditions])
+        query = query.filter(combined_conditions)
+    
+    # Handle marks range
+    query = query.filter((Test.marks >= marks_lower) | Test.id.is_(None))
+    query = query.filter((Test.marks <= marks_upper) | Test.id.is_(None))
+    
+    
+    # Handle creation date range
+    if creation_start:
+        query = query.filter((Test.created_at >= datetime.fromisoformat(creation_start)) | Test.id.is_(None))
+    if creation_end:
+        query = query.filter((Test.created_at <= datetime.fromisoformat(creation_end)) | Test.id.is_(None))
+    
+    # Handle updated date range
+    if updated_start:
+        query = query.filter((Test.last_updated >= datetime.fromisoformat(updated_start)) | Test.id.is_(None))
+    if updated_end:
+        query = query.filter((Test.last_updated <= datetime.fromisoformat(updated_end)) | Test.id.is_(None))
+    
+
+    # Handle duration range
+    query = query.filter((Test.duration_seconds >= duration_lower) | Test.id.is_(None))
+    query = query.filter((Test.duration_seconds <= duration_upper) | Test.id.is_(None))
+
+
+    def apply_sort_order(query, column):
+        if sort_order == 'desc':
+            return query.order_by(desc(column))
+        else:
+            return query.order_by(column)
+
+    if sort_by == 'popularity':
+        if not test_type == "attempted": query = query.outerjoin(UserTest, UserTest.test_id == Test.id)
+        query = query.group_by(Test.id)
+        query = apply_sort_order(query, func.sum(UserTest.user_id))
+    elif sort_by == 'title':
+        query = apply_sort_order(query, Test.title)
+    elif sort_by == 'subject':
+        query = query.outerjoin(Subject, Test.subject_id == Subject.id)
+        query = apply_sort_order(query, Subject.name)
+    elif sort_by == 'marks':
+        query = apply_sort_order(query, Test.marks)
+    elif sort_by == 'duration_seconds':
+        query = apply_sort_order(query, Test.duration_seconds)
+    elif sort_by == 'created_at':
+        query = apply_sort_order(query, Test.created_at)
+    elif sort_by == 'updated_at':
+        query = apply_sort_order(query, Test.last_updated)
+    elif test_type == 'attempted':
+        if sort_by == 'attempts':
+            query = apply_sort_order(query, UserTest.attempts)
+        elif sort_by == 'best_score_perc':
+            query = apply_sort_order(query, (UserTest.best_score / Test.marks * 100))
+        elif sort_by == 'best_score_time_perc':
+            query = apply_sort_order(query, (UserTest.best_score_duration_seconds / Test.duration_seconds * 100))
+        elif sort_by == 'last_attempted_at':
+            query = apply_sort_order(query, UserTest.last_attempted_start_time)
+
+
+    paginated_tests = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    result = {
+        'tests': [],
+        'total_pages': paginated_tests.pages,
+        'current_page': paginated_tests.page
+    }
+
+    if page > paginated_tests.pages:
+        return jsonify(result), 200
+    
+    if test_type == 'attempted':
+        for user_test in paginated_tests.items:
             test_data = {
-                'id' : user_test.test_id,
                 'attempts' : user_test.attempts,
                 'last_attempted_start_time' : user_test.last_attempted_start_time,
                 'best_score' : user_test.best_score,
                 'best_score_attempt_start_time' : user_test.best_score_attempt_start_time,
-                'best_score_duration_seconds' :  user_test.best_score_duration_seconds
+                'best_score_duration_seconds' :  user_test.best_score_duration_seconds,
+                'test_has_been_updated' : False
             }
-            if test: add_test_details_to_dict(test, test_data)
-            tests_data.append(test_data)
-
+            if not user_test.is_attempted_test_deleted:
+                test = Test.query.get(user_test.test_id)
+                if test.last_updated > user_test.last_attempted_start_time:
+                    test_data["test_has_been_updated"] = True
+                test_data.update(get_test_details_as_dict(test))
+            else:
+                test_data["id"] = user_test.test_id
+            result['tests'].append(test_data)
     else:
-        tests = pagination.items
-        for test in tests:
-            test_data = {}
-            add_test_details_to_dict(test, test_data)
-            tests_data.append(test_data)
-        
-    return jsonify({
-        'tests': tests_data,
-        'total_pages': pagination.pages,
-        'current_page': pagination.page
-    }), 200
+        for test in paginated_tests.items:
+            test_data = get_test_details_as_dict(test)
+            result['tests'].append(test_data)
+
+    return jsonify(result), 200
 
 
-@app.route('/tests', methods=[POST])
+@app.route('/create-test', methods=[POST])
 @login_required
 @admin_privilege_required
 def create_test():
@@ -225,11 +358,8 @@ def provide_test(test_id):
     test = Test.query.get(test_id)
     if not test: return jsonify({ERROR : "Test with given id doesn't exist"}), 404
 
-    test_data = {}
-    add_test_details_to_dict(test, test_data)
+    test_data = get_test_details_as_dict(test)
     test_data['questions'] = []
-
-    # questions = Question.query.filter_by(test_id=test_id).all()
     
     for question in test.questions:
         question_image_url = None
@@ -319,7 +449,7 @@ def delete_test(test_id):
 @app.route('/tests/bulk-delete', methods=[POST])
 def bulk_delete_tests():
     test_ids = request.json.get('test_ids', [])
-    test_ids = [ int(test_id) for test_id in test_ids ]
+    test_ids = [ test_id for test_id in test_ids ]
     result = verify_test_ids_for_deletion(test_ids)
     if not result[-1]:
         return result[:2]
@@ -380,7 +510,7 @@ def add_test_attempt(test_id):
     test = Test.query.get(test_id)
     if not test: return jsonify({ERROR: "Test with the given id doesn't exist"}), 404
     user_id = session.get(USER_ID)
-    test_attempt_time = datetime.fromisoformat(request.form.get("test_attempt_time"))
+    test_attempt_time = db.func.current_timestamp()
     test_score = safe_int(request.form.get("test_score"))
     test_duration_seconds = safe_int(request.form.get("test_duration"))
 
@@ -423,7 +553,7 @@ def delete_user_test(test_id):
 @app.route('/tests/attempt/bulk-delete', methods = [POST])
 def bulk_delete_user_tests():
     test_ids = request.json.get('test_ids', [])
-    test_ids = [ int(test_id) for test_id in test_ids ]
+    test_ids = [ test_id for test_id in test_ids ]
     result = verify_test_ids_for_deletion(test_ids, check_user = False)
     if not result[-1]:
         return result[:2]
@@ -492,12 +622,9 @@ def upload_user_avatar():
         file_path = os.path.join(app.config['USER_AVATAR_UPLOAD_FOLDER'], unique_filename)
         delete_existing_file(user_id, app.config['USER_AVATAR_UPLOAD_FOLDER'])
         file.save(file_path)
-        
-        # Save the file path to the user's record in the database
         user = User.query.get(user_id)
         user.avatar_path = file_path
         db.session.commit()
-        
         return jsonify({SUCCESS: 'File uploaded successfully!'}), 200
 
     return jsonify({ERROR: 'File upload failed'}), 500
@@ -505,7 +632,6 @@ def upload_user_avatar():
 def add_questions_to_test(test_form, test):
     tot_test_marks = 0
     question_data = get_structured_inp_ids(list(test_form.keys()) + list(request.files.keys()))
-    print(question_data)
     for question_inp_data in question_data:
         question_text = test_form.get(question_inp_data['question'])
         question_marks_pos = safe_int(test_form.get(question_inp_data['marks_pos']))
@@ -578,7 +704,8 @@ def verify_test_ids_for_deletion(test_ids, check_user = True):
             return jsonify({ERROR: f"Unauthorized deletion request for test IDs {[test.id for test in unauthorized_tests]}. Bulk deletion refused"}), 403, False
     return (True,)
 
-def add_test_details_to_dict(test, test_data_dict):
+def get_test_details_as_dict(test):
+    test_data_dict = {}
     author = User.query.get(test.created_by)
     author_details = {
         "username": author.username,
@@ -593,6 +720,7 @@ def add_test_details_to_dict(test, test_data_dict):
     test_data_dict['author_details'] = author_details
     test_data_dict['created_at'] = test.created_at
     test_data_dict['last_updated'] = test.last_updated
+    return test_data_dict
 
 def delete_subject_if_not_shared(test):
     has_other_same_subject_tests = db.session.query(

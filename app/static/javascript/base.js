@@ -24,19 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const navbarAvatar = document.getElementById('navbarAvatar');
-    const userBox = document.getElementById('userBox');
     const avatarInput = document.getElementById('avatarInput');
     const avatar = document.getElementById('avatar');
     const changeAvatarBtn = document.getElementById('changeAvatarBtn');
     const logoutBtn = document.getElementById('logoutBtn')
 
-    navbarAvatar.addEventListener('click', (e) => {
-        const rect = navbarAvatar.getBoundingClientRect();
-        userBox.style.top = `${rect.bottom + window.scrollY}px`;
-        userBox.style.right = `${window.innerWidth - rect.right}px`;
-        userBox.style.display = userBox.style.display === 'block' ? 'none' : 'block';
-    });
-
+   
     changeAvatarBtn.addEventListener('click', () => avatarInput.click());
     logoutBtn.addEventListener('click', () => window.location.href = "/logout");
 
@@ -67,17 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.addEventListener('click', (e) => {
-        if (!userBox.contains(e.target) && e.target !== navbarAvatar) {
-            userBox.style.display = 'none';
-        }
-    });
+    document.getElementById('user-profile').addEventListener('click', (event) => {
+        event.stopPropagation()
+    })
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            userBox.style.display = 'none';
-        }
-    });
 
     // Show any toast messages when page loads
     const toastMessageContainers = document.querySelectorAll('.page-load-toast-message-container')
@@ -101,13 +87,28 @@ function checkAndHandleEmptyInp(inp, invalidMsgBox, invalidMsg) {
     return [ isValid, inp ]
 }
 
-function validateInput(event) {
+function removeNonDigit(event, allowDecimal = false) {
     const key = event.key;
-    if (['-', '.','e'].includes(key)) {
+    const blacklist = ['-', 'e']
+    if (!allowDecimal)
+        blacklist.push('.')
+    if (blacklist.includes(key)) {
         event.preventDefault();
     }
 }
 
+function checkAndLimitTimeVal(input) {
+    if (input.id === 'test-duration-hr') {
+        if (input.value > 999) input.value = 999;
+    }
+    if (input.id === 'test-duration-min' || input.id === 'test-duration-sec') {
+        if (input.value < 0) input.value = 0;
+        if (input.value > 59) input.value = 59;
+    }
+    input.value = toTwoDigitFormat(input.value)
+}
+ 
+    
 function capInpVal(input, lowerLim, upperLim) {
     if (input.value < lowerLim) input.value = lowerLim;
     if (input.value > upperLim) input.value = upperLim;
@@ -164,8 +165,16 @@ function formatDuration(seconds) {
     } else if (remainingSeconds) {
         return `${remainingSeconds} ${secondText}`;
     }
-    
     return '';
+}
+
+function timeToDuration(hrs, mins, seconds) {
+    if (hrs == "" && mins == "" && seconds == "")
+        return null
+    hrs = Number(hrs)
+    mins = Number(mins)
+    seconds = Number(seconds)
+    return hrs * 60 * 60 + mins * 60 + seconds
 }
 
 function showToastMessage(message, messageType = "normal") {

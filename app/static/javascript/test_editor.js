@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const addMCQButton = document.getElementById('add-mcq');
     const addResponseQuestionButton = document.getElementById('add-response-question');
 
+    document.getElementById('cancel_btn').addEventListener('click', () => {
+        window.location.href = "/"
+    })
+
     addMCQButton.addEventListener('click', () => addQuestion('mcq'));
     addResponseQuestionButton.addEventListener('click', () => addQuestion('response'));
 
@@ -203,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return
         }
         
-        fetch('/tests', {
+        fetch('/create-test', {
                 method: "POST",
                 body: testFormData,
             })
@@ -259,10 +263,10 @@ function addQuestion(type, questionText = "", answerText = "", imageUrl="", posM
                     <span class="input-group-text">Marks</span>
                     <span class="input-group-text">Pos.</span>
                     <input type="number" name="marks-pos-${questionId}" id="marks-pos-${questionId}" value="${posMarks}" min="0" step="1" class="form-control" placeholder="00"
-                        onkeydown="validateInput(event)" oninput="handleMarksPosInp(this)"/>
+                        onkeydown="removeNonDigit(event)" oninput="handleMarksPosInp(this)"/>
                     <span class="input-group-text">Neg.</span>
                     <input type="number" name="marks-neg-${questionId}" id="marks-neg-${questionId}" value="${negMarks}" min="0" step="1" class="form-control" placeholder="00"
-                        onkeydown="validateInput(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
+                        onkeydown="removeNonDigit(event)" oninput="this.value = toTwoDigitFormat(this.value);"/>
                 </div>
             </div>
             <div class="card-body">
@@ -411,17 +415,6 @@ function updateOptionNumbers() {
     document.querySelectorAll('.option').forEach((questionElement, index) => {
         questionElement.querySelector('.input-group-text').textContent = (index + 1) + ".";
     });
-}
-
-function checkValue(input) {
-    if (input.id === 'test-duration-hr') {
-        if (input.value > 999) input.value = 999;
-    }
-    if (input.id === 'test-duration-min' || input.id === 'test-duration-sec') {
-        if (input.value < 0) input.value = 0;
-        if (input.value > 59) input.value = 59;
-    }
-    input.value = toTwoDigitFormat(input.value)
 }
 
 

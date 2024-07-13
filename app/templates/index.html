@@ -19,28 +19,244 @@
 <div class="search-bar-container" id="search-bar-container-long-width">
   <!-- Search Bar  -->
   <div class="input-group d-flex justify-content-center align-items-center" id="main-search-bar-container">
-    <input type="text" id="seach-inp" class="form-control" placeholder="Search" aria-label="Search"
+    <input type="text" id="search-inp" class="form-control" placeholder="Search" aria-label="Search"
       aria-describedby="search-icon">
-    <button class="btn primary-col-1 search-btn" type="button"><i class="bi bi-search"></i></i></button>
+    <button class="btn secondary-col-1 search-btn" id="search-bar-search-btn" type="button"><i class="bi bi-search" onclick="refetchData()"></i></button>
     <button class="btn secondary-col-1 filter-btn" id="filter-btn" data-bs-toggle="dropdown" aria-expanded="false"
       type="button"><i class="bi bi-sliders"></i></button>
-    <div class="dropdown-menu dropdown-menu-start w-100 p-3" id="search-and-filter-options" aria-labelledby="filter-btn">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Quasi, illum? Eveniet, necessitatibus earum numquam
-      laudantium doloremque ut quam aut fugiat ipsa a nemo commodi officiis ratione assumenda perspiciatis quas
-      consequatur mollitia, in nulla accusantium quia nisi labore tempora deserunt! Provident, libero illo? Obcaecati hic
-      repellat quia beatae sapiente libero fugiat laboriosam aperiam impedit soluta provident dolor optio magni atque,
-      iste ipsa quibusdam corrupti quidem culpa praesentium ea error maiores excepturi nisi! Ab possimus corrupti,
-      laudantium, minus aperiam quaerat libero eos accusantium aliquid quibusdam tempora temporibus est officiis veniam
-      porro illum perspiciatis dolorum saepe fugiat rerum, dolor exercitationem vitae neque beatae?
+    <div class="dropdown-menu dropdown-menu-start w-100 p-2" id="search-and-filter-options" aria-labelledby="filter-btn">
+      <div class="container-fluid">
+        <form id="filter-form">
+        <div id="search-and-filter-opts-inp-container" style="max-height: 58vh; overflow-x: hidden; overflow-y: auto;">
+        <div class="mb-2 ps-1" id="search-in-container">
+          <div class="row mb-2">
+            <div class="col-12 fw-bold">
+              Search in:
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <input class="form-check-input" type="checkbox" id="cb-search-in-title">
+              <label class="form-label cursor-pointer ms-1" for="cb-search-in-title">Title</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <input class="form-check-input" type="checkbox" id="cb-search-in-subject">
+              <label class="form-label cursor-pointer ms-1" for="cb-search-in-subject">Subject</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <input class="form-check-input" type="checkbox" id="cb-search-in-description">
+              <label class="form-label cursor-pointer ms-1" for="cb-search-in-description">Description</label>
+            </div>
+          </div>
+        </div>
+
+        <div id="ranges-inp-container">
+          <div class="row mb-2">
+            <div class="col-12 fw-bold">
+              With:
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="input-group mb-2">
+                <span class="input-group-text">
+                  Marks
+                </span>
+                <input type="number" class="form-control" id="lower-lim-marks" placeholder="From" aria-label="From" oninput="this.value = toTwoDigitFormat(this.value)" onkeydown="removeNonDigit(event)" >
+                <span class="input-group-text">
+                  <i class="bi bi-arrow-right"></i>
+                </span>
+                <input type="number" class="form-control" id="upper-lim-marks" placeholder="To" aria-label="To" oninput="this.value = toTwoDigitFormat(this.value)" onkeydown="removeNonDigit(event)">
+              </div>
+            </div>         
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <div class="input-group mb-2">
+                <span class="input-group-text">
+                  Created On
+                </span>
+                <input type="datetime-local" class="form-control" id="lower-lim-created-on" placeholder="From" aria-label="From">
+                <span class="input-group-text">
+                  <i class="bi bi-arrow-right"></i>
+                </span>
+                <input type="datetime-local" class="form-control" id="upper-lim-created-on" placeholder="To" aria-label="To">
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <div class="input-group mb-2">
+                <span class="input-group-text">
+                  Updated On
+                </span>
+                <input type="datetime-local" class="form-control" id="lower-lim-updated-on" placeholder="From" aria-label="From">
+                <span class="input-group-text">
+                  <i class="bi bi-arrow-right"></i>
+                </span>
+                <input type="datetime-local" class="form-control" id="upper-lim-updated-on" placeholder="To" aria-label="To">
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-1">
+            <div class="col-12">
+              Duration
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-8 col-12">
+              <div class="input-group mb-2">
+                <span class="input-group-text">
+                  From
+                </span>
+
+                <span class="input-group-text">H</span>
+                <input type="number" id="lower-lim-dur-hr" min="0" step="1" class="form-control"
+                  placeholder="00" oninput="checkAndLimitTimeVal(this)" onkeydown="removeNonDigit(event)" />
+                <span class="input-group-text">M</span>
+                <input type="number" id="lower-lim-dur-min" min="0" step="1" class="form-control"
+                  placeholder="00" oninput="checkAndLimitTimeVal(this)" onkeydown="removeNonDigit(event)" />
+                <span class="input-group-text">S</span>
+                <input type="number" id="lower-lim-dur-sec" min="0" step="1" class="form-control"
+                  placeholder="00" oninput="checkAndLimitTimeVal(this)" onkeydown="removeNonDigit(event)" />
+
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-8 col-12">
+              <div class="input-group mb-2">
+                <span class="input-group-text" style="padding-right: 4.5vh;">
+                  To
+                </span>
+          
+                <span class="input-group-text">H</span>
+                <input type="number" id="upper-lim-dur-hr" min="0" step="1" class="form-control"
+                  placeholder="00" oninput="checkAndLimitTimeVal(this)" onkeydown="removeNonDigit(event)" />
+                <span class="input-group-text">M</span>
+                <input type="number" id="upper-lim-dur-min" min="0" step="1" class="form-control"
+                  placeholder="00" oninput="checkAndLimitTimeVal(this)" onkeydown="removeNonDigit(event)" />
+                <span class="input-group-text">S</span>
+                <input type="number" id="upper-lim-dur-sec" min="0" step="1" class="form-control"
+                  placeholder="00" oninput="checkAndLimitTimeVal(this)" onkeydown="removeNonDigit(event)" />
+          
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- filter For attempted tab -->
+          <div id="attempts-filter-options" style="display: none;">
+            <li style="margin-bottom: 2vh;">
+              <hr class="dropdown-divider">
+            </li>
+          
+            <div class="row">
+              <div class="col-12">
+                <div class="input-group mb-2">
+                  <span class="input-group-text">
+                    Attempts
+                  </span>
+                  <input type="number" class="form-control" id="lower-lim-attempts" placeholder="From" aria-label="From"
+                    oninput="this.value = toTwoDigitFormat(this.value)" onkeydown="removeNonDigit(event)">
+                  <span class="input-group-text">
+                    <i class="bi bi-arrow-right"></i>
+                  </span>
+                  <input type="number" class="form-control" id="upper-lim-attempts" placeholder="To" aria-label="To"
+                    oninput="this.value = toTwoDigitFormat(this.value)" onkeydown="removeNonDigit(event)">
+                </div>
+              </div>
+            </div>
+          
+            <div class="row">
+              <div class="col-12">
+                <div class="input-group mb-2">
+                  <span class="input-group-text">
+                    Best Score %
+                  </span>
+                  <input type="number" class="form-control" id="lower-lim-best-score-perc" placeholder="From" aria-label="From"
+                    oninput="capInpVal(this, 0, 100);" onkeydown="removeNonDigit(event, allowDecimal = true)">
+                  <span class="input-group-text">
+                    <i class="bi bi-arrow-right"></i>
+                  </span>
+                  <input type="number" class="form-control" id="upper-lim-best-score-perc" placeholder="To" aria-label="To" 
+                  oninput="capInpVal(this, 0, 100);" onkeydown="removeNonDigit(event, allowDecimal = true)">
+                </div>
+              </div>
+            </div>
+          
+            <div class="row">
+              <div class="col-12">
+                <div class="input-group mb-2">
+                  <span class="input-group-text">
+                    Best Score Time %
+                  </span>
+                  <input type="number" class="form-control" id="lower-lim-best-score-time-perc" placeholder="From" aria-label="From"
+                    oninput="capInpVal(this, 0, 100);" onkeydown="removeNonDigit(event, allowDecimal = true)">
+                  <span class="input-group-text">
+                    <i class="bi bi-arrow-right"></i>
+                  </span>
+                  <input type="number" class="form-control" id="upper-lim-best-score-time-perc" placeholder="To" aria-label="To"
+                    oninput="capInpVal(this, 0, 100);" onkeydown="removeNonDigit(event, allowDecimal = true)">
+                </div>
+              </div>
+            </div>
+          
+            <div class="row">
+              <div class="col-12">
+                <div class="input-group mb-2">
+                  <span class="input-group-text">
+                    Last Attempt
+                  </span>
+                  <input type="datetime-local" id="lower-lim-last-attempt-on" class="form-control" placeholder="From" aria-label="From">
+                  <span class="input-group-text">
+                    <i class="bi bi-arrow-right"></i>
+                  </span>
+                  <input type="datetime-local" id="upper-lim-last-attempt-on" class="form-control" placeholder="To" aria-label="To">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+      </div>
+
+      </form>
+      </div>
+      
+      <div class="row mt-2 d-flex justify-content-end">
+        <div class="col-3" style="width: max-content; padding-right: 0;">
+          <button class="btn primary-col-1" type="button" onclick="clearFilter();">
+            <i class="bi bi-eraser-fill"></i>
+            Clear All
+          </button>
+        </div>
+        <div class="col-3" style="width: max-content;">
+          <button id="filter-search-btn" class="btn secondary-col-1" type = "button" onclick="refetchData()">
+            <i class="bi bi-search"></i>
+            Search
+          </button>
+        </div>
+      </div>
   
     </div>
     <button class="btn secondary-col-1" id="sort-options-btn" data-bs-toggle="dropdown" aria-expanded="false" type="button"
       style="border-radius: 0 6px 6px 0"><i class="bi bi-sort-down-alt"></i></button>
-    <ul class="dropdown-menu dropdown-menu-end" id="sort-opt-btns-list">
+    <ul class="dropdown-menu dropdown-menu-end" id="sort-opt-btns-list" style="width: 40%;">
       <div id="sort-opt-btns-container" style="max-height: 26vh; overflow: auto;">
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="title-sort-opt" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="title" onclick="toggleSortOptBtn(this)">
           Title
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -49,7 +265,7 @@
       </li>
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="subject-sort-opt" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="subject" onclick="toggleSortOptBtn(this)">
           Subject
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -58,7 +274,7 @@
       </li>
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="marks-sort-opt" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="marks" onclick="toggleSortOptBtn(this)">
           Marks
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -67,7 +283,7 @@
       </li>
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="duration-sort-top" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="duration_seconds" onclick="toggleSortOptBtn(this)">
           Duration
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -76,7 +292,7 @@
       </li>
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="creation-sort-opt" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="created_at" onclick="toggleSortOptBtn(this)">
           Created
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -85,7 +301,7 @@
       </li>
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="updation-sort-opt" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="updated_at" onclick="toggleSortOptBtn(this)">
           Updated
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -94,7 +310,7 @@
       </li>
       <li>
         <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="popularity-sort-opt" type="button"
-          data-state="neutral" onclick="toggleSortOptBtn(this)">
+          data-state="neutral" data-sort-by="popularity" onclick="toggleSortOptBtn(this)">
           Popularity
           <span>
             <i class="bi bi-chevron-expand"></i>
@@ -103,8 +319,11 @@
       </li>
       <div id="attempted-tab-sort-opt-container" style="display: none;">
         <li>
+          <hr class="dropdown-divider">
+        </li>
+        <li>
           <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="attempts-sort-opt" type="button"
-            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            data-state="neutral" data-sort-by="attempts" onclick="toggleSortOptBtn(this)">
             Attempts
             <span>
               <i class="bi bi-chevron-expand"></i>
@@ -114,7 +333,7 @@
 
         <li>
           <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="best-score-perc-sort-opt" type="button"
-            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            data-state="neutral" data-sort-by="best_score_perc" onclick="toggleSortOptBtn(this)">
             Best Score %
             <span>
               <i class="bi bi-chevron-expand"></i>
@@ -124,7 +343,7 @@
 
         <li>
           <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="best-score-time-perc-sort-opt" type="button"
-            data-state="neutral" onclick="toggleSortOptBtn(this)">
+            data-state="neutral" data-sort-by="best_score_time_perc" onclick="toggleSortOptBtn(this)">
             Best Time %
             <span>
               <i class="bi bi-chevron-expand"></i>
@@ -134,8 +353,8 @@
 
         <li>
           <button class="dropdown-item d-flex justify-content-between dropdown-item-btn" id="attempt-date-sort-opt" type="button"
-            data-state="neutral" onclick="toggleSortOptBtn(this)">
-            Attempt Date
+            data-state="neutral" data-sort-by="last_attempted_at" onclick="toggleSortOptBtn(this)">
+            Last Attempted
             <span>
               <i class="bi bi-chevron-expand"></i>
             </span>
@@ -144,7 +363,7 @@
       </div>
       </div>
       <li class="px-2 pt-2">
-        <button class="btn secondary-col-1 w-100" type="button" id="sort-btn">
+        <button class="btn secondary-col-1 w-100" type="button" id="sort-btn" onclick="refetchData()">
           <i class="bi bi-arrow-repeat"></i>
           Sort
         </button>
@@ -238,7 +457,7 @@
 <!-- Go To Page input-->
 <div class="input-group d-none shadow position-fixed" id="goto-page-container" style="width: 18vh; min-width: 18vh;z-index: 600;">
   <input id="goto-page-inp" type="number" class="form-control" placeholder="Go to" aria-label="goto-page"
-    aria-describedby="goto-span" onkeydown="validateInput(event)" oninput="capInpVal(this, 1, 10000000)">
+    aria-describedby="goto-span" onkeydown="removeNonDigit(event)" oninput="capInpVal(this, 1, 10000000)">
   <button class="btn btn-primary" id="goto-page-btn" type="button">Go</button>
 </div>
 <!-- Go To Page input end -->
@@ -284,13 +503,13 @@
   </div>
 </div>
 
-<div class="modal fade" id="test-detail-modal" tabindex="-1" aria-labelledby="test-detail-title" aria-hidden="true">
+<div class="modal fade" id="test-detail-modal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" id="test-modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="test-detail-title">
+      <div class="modal-header d-flex align-items-center">
+        <h1 class="modal-title fs-5" >
           <i class="bi bi-info-circle-fill"></i>
-          Test Details
+          <span id="test-detail-title">Test Details</span> 
         </h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -407,7 +626,7 @@
 
       <div id="test-details-modal-footer" class="modal-footer d-flex justify-content-end align-items-center">
         <button id="delete-btn-modal" type="button" class="btn btn-danger hidden-component" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal">Delete</button>
-        <button id="update-test-btn-modal" type="button" class="btn secondary-col-1" style="display: none;"><i class="bi bi-pencil-square"></i>&nbsp;Edit Test</button>
+        <button id="update-test-btn-modal" type="button" class="btn btn-primary" style="display: none;"><i class="bi bi-pencil-square"></i>&nbsp;Edit Test</button>
         <button id="take-test-btn-modal" type="button" class="btn secondary-col-1"><i class="bi bi-list-task"></i> &nbsp;Take test</button>
       </div>
       

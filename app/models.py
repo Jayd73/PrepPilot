@@ -1,3 +1,5 @@
+from sqlalchemy.dialects.postgresql import UUID
+
 from . import db
 
 TYPE_REGULAR_USER = "REG USER"
@@ -7,6 +9,7 @@ QTYPE_MCQ = "MCQ"
 QTYPE_MSQ = "MSQ"
 QTYPE_RESP = "RESP"
 
+# with help from ChatGPT
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -52,6 +55,7 @@ class UserTest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     test_id = db.Column(db.Integer, db.ForeignKey('test.id'), nullable=False)
+    is_attempted_test_deleted = db.Column(db.Boolean, default = False)
     last_attempted_start_time = db.Column(db.DateTime)
     best_score_attempt_start_time = db.Column(db.DateTime)
     best_score_duration_seconds = db.Column(db.Integer)

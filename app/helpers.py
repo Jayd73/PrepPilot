@@ -1,6 +1,6 @@
 from flask import redirect, session
 from functools import wraps
-from .models import TYPE_ADMIN, Question
+from .models import TYPE_ADMIN, Question, Test, UserTest
 from . import USER_ID, ROLE
 from sqlalchemy.event import listens_for
 import bcrypt
@@ -69,6 +69,9 @@ def get_structured_inp_ids(inp_ids):
 def safe_int(numStr):
     return int(numStr) if numStr.isdigit() else 0
 
+def safe_float(numStr):
+    return float(numStr) if numStr.isdigit() else 0
+
 def delete_existing_file(user_id, upload_folder):
     for filename in os.listdir(upload_folder):
         if filename.startswith(f"{user_id}_"):
@@ -85,6 +88,22 @@ def delete_question_image(mapper, connection, target):
             os.remove(target.image_path)
         else:
             print(f"Image not found: {target.image_path}")
+
+# Used ChatGPT
+@listens_for(Test, 'after_delete')
+def after_delete_test(mapper, connection, target):
+    # Find the related UserTest records and set is_attempted_test_deleted to True
+    connection.execute(
+        UserTest.__table__.update().
+        where(UserTest.test_id == target.id).
+        values(is_attempted_test_deleted=True)
+    )
+
+def get_val_or_default_val(dict, key, default_val):
+    val = dict.get(key)
+    if val: return val
+    return default_val
+
 
 
 

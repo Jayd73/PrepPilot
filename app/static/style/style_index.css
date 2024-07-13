@@ -152,7 +152,11 @@ body {
 }
 
 .search-bar-container{
-    width: 150%;
+    width: 200%;
+}
+
+.cursor-pointer{
+    cursor: pointer;
 }
 
 .dropdown-item-btn{
@@ -165,6 +169,16 @@ body {
     padding-bottom: 1vh;
     background-color: var(--primary-col-1-bg);
     color: black;
+}
+
+.page-item.active .page-link {
+    background-color: var(--secondary-col-1-bg);
+    border-color: var(--secondary-col-1-bg);
+    color: whitesmoke;
+}
+
+.pagination .page-link {
+    color: var(--secondary-col-1-bg);
 }
 
 @media only screen and (max-width: 992px) {

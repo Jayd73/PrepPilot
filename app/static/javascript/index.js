@@ -5,6 +5,8 @@ var currTestType;
 var currPageNum;
 var currClickedTestId;
 var lastSelectedSortOptBtn;
+var sort_by = null;
+var sort_order = null;
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,10 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchTests(currTestType, currPageNum, perPageRecords);
 
     document.getElementById('select-all-cb').addEventListener('change', (event) => {
-        // if (event.currentTarget !== event.target) return;
-
-        // event.stopPropagation();
-        // event.preventDefault();
         
         const isChecked = event.target.checked;
         const testCheckboxes = document.querySelectorAll('input[id^="test-select"]');
@@ -42,8 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
     handleScreenWidthChange(mediaQuery);
     mediaQuery.addEventListener('change', handleScreenWidthChange);
+
     document.getElementById('sort-btn').addEventListener('click', () => {
         hideDropdownOnBtnClick('sort-options-btn')
+    })
+
+    document.getElementById('filter-search-btn').addEventListener('click', () => {
+        hideDropdownOnBtnClick('filter-btn')
     })
 
     document.getElementById('sort-opt-btns-list').addEventListener('click', (event) => {
@@ -59,6 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('update-test-btn-modal').addEventListener('click', () => {
         window.location.href = `/test-editor?test_id=${currClickedTestId}`
     })
+
+    const searchInp = document.getElementById('search-inp')
+    searchInp.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            if (document.activeElement === searchInp) {
+                refetchData();
+            }
+        }
+    });
 
 });
 
@@ -107,18 +119,23 @@ function toggleSortOptBtn(selectedSortOptBtn) {
     }
 
     const iconElement = selectedSortOptBtn.querySelector('i')
+    sort_by = selectedSortOptBtn.getAttribute('data-sort-by')
     if (currState === neutralState) {
         selectedSortOptBtn.setAttribute('data-state', incrState);
         iconElement.classList.remove(neutralIconClass);
         iconElement.classList.add(incrIconClass);
+        sort_order = "asc"
     } else if (currState === incrState) {
         selectedSortOptBtn.setAttribute('data-state', decrState);
         iconElement.classList.remove(incrIconClass);
         iconElement.classList.add(decrIconClass);
+        sort_order = "desc"
     } else {
         selectedSortOptBtn.setAttribute('data-state', neutralState);
         iconElement.classList.remove(decrIconClass);
         iconElement.classList.add(neutralIconClass);
+        sort_by = null;
+        sort_order = null;
     }
 
     lastSelectedSortOptBtn = selectedSortOptBtn;
@@ -153,22 +170,24 @@ function handleTabBtnClick(event) {
     const deleteBtn = document.getElementById('delete-btn-modal')
     const updateBtn = document.getElementById('update-test-btn-modal')
     const extraSortOptContainer = document.getElementById('attempted-tab-sort-opt-container')
+    const extraFilterOptContainer = document.getElementById('attempts-filter-options')
 
     updateBtn.style.display = 'none'
     if (testType === "attempted") {
         deleteBtn.innerHTML = `<i class="bi bi-trash-fill"></i> Delete Record`
         extraSortOptContainer.style.display = 'block'
+        extraFilterOptContainer.style.display = 'block'
     }
     else if (testType === "created") {
         deleteBtn.innerHTML = `<i class="bi bi-trash-fill"></i> Delete Test`
         updateBtn.style.display = 'block'
         extraSortOptContainer.style.display = 'none'
+        extraFilterOptContainer.style.display = 'none'
     }
     else if (testType === "all") {
         extraSortOptContainer.style.display = 'none'
+        extraFilterOptContainer.style.display = 'none'
     }
-
-
     
     activateTabBtn(testType)
     fetchTests(currTestType, currPageNum, perPageRecords)
@@ -181,22 +200,86 @@ function activateTabBtn(testType) {
 }
 
 function fetchTests(testType, page, perPage) {
-    fetch(`/tests?type=${testType}&page=${page}&per-page=${perPage}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById('select-all-cb').checked = false
-            currPageNum = data.current_page
-            renderTests(data.tests, testType);
-            renderPagination(data.total_pages, data.current_page, testType, perPage);
-        })
-        .catch(error => {
-            console.error('Error fetching test data:', error);
-        });
+    const cbSearchTitle = document.getElementById('cb-search-in-title');
+    const cbSearchSubject = document.getElementById('cb-search-in-subject');
+    const cbSearchDescription = document.getElementById('cb-search-in-description');
+    const search_text = getValueOrNull('search-inp')
+
+    let searchInTitle = cbSearchTitle.checked;
+    let searchInSubject = cbSearchSubject.checked;
+    let searchInDescription = cbSearchDescription.checked;
+
+    if (search_text && !searchInTitle && !searchInSubject && !searchInDescription) {
+        searchInTitle = true; 
+    }
+    
+    const filterData = {
+        search_text: search_text,
+        search_in_title: searchInTitle,
+        search_in_subject: searchInSubject,
+        search_in_description: searchInDescription,
+        marks_lower: getValueOrNull('lower-lim-marks'),
+        marks_upper: getValueOrNull('upper-lim-marks'),
+        creation_start: convertToGlobalTime('lower-lim-created-on'),
+        creation_end: convertToGlobalTime('upper-lim-created-on'),
+        updated_start: convertToGlobalTime('lower-lim-updated-on'),
+        updated_end: convertToGlobalTime('upper-lim-updated-on'),
+
+        duration_lower: timeToDuration(
+            document.getElementById('lower-lim-dur-hr').value,
+            document.getElementById('lower-lim-dur-min').value,
+            document.getElementById('lower-lim-dur-sec').value,
+        ),
+        duration_upper: timeToDuration(
+            document.getElementById('upper-lim-dur-hr').value,
+            document.getElementById('upper-lim-dur-min').value,
+            document.getElementById('upper-lim-dur-sec').value,
+        ),
+
+        sort_options: {
+            sort_by: sort_by,
+            sort_order: sort_order
+        },
+
+        page: page,
+        per_page: perPage,
+        type: testType
+    }
+
+    if (testType == "attempted") {
+        filterData.attempts_lower = getValueOrNull('lower-lim-attempts')
+        filterData.attempts_upper = getValueOrNull('upper-lim-attempts')
+        filterData.best_score_perc_lower = getValueOrNull('lower-lim-best-score-perc')
+        filterData.best_score_perc_upper = getValueOrNull('upper-lim-best-score-perc')
+        filterData.best_score_time_perc_lower = getValueOrNull('lower-lim-best-score-time-perc')
+        filterData.best_score_time_perc_upper = getValueOrNull('upper-lim-best-score-time-perc')
+        filterData.last_attempted_lower = convertToGlobalTime('lower-lim-last-attempt-on')
+        filterData.last_attempted_upper = convertToGlobalTime('upper-lim-last-attempt-on')
+    }
+
+    fetch(`/tests`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(filterData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('select-all-cb').checked = false
+        currPageNum = data.current_page
+        renderTests(data.tests, testType);
+        renderPagination(data.total_pages, data.current_page, testType, perPage);
+    })
+    .catch(error => {
+        console.error('Error fetching test data:', error);
+    });
 }
 
 function renderTests(tests, testType) {
@@ -299,6 +382,7 @@ function renderTests(tests, testType) {
             const testMarks = document.getElementById('test-marks-modal')
             const testDuration = document.getElementById('test-duration-modal')
             const takeTestBtn = document.getElementById('take-test-btn-modal')
+            const testDetailModalTitle = document.getElementById('test-detail-title')
             
             currClickedTestId = test.id
 
@@ -324,8 +408,14 @@ function renderTests(tests, testType) {
             document.getElementById('test-modal-dialog').classList.add('modal-lg')
             document.getElementById('test-marks-modal').classList.add('col-md-3')
             document.getElementById('test-marks-modal').classList.remove('col-md-5')
-            document.getElementById('test-detail-title').innerHTML = `<i class="bi bi-info-circle-fill"></i> Test Details`
+            testDetailModalTitle.innerHTML = `Test Details`
             testTitle.classList.remove('text-muted')
+
+            if ((testType == "attempted" || testType == "all") && test.test_has_been_updated) {
+                testDetailModalTitle.innerHTML += `&nbsp;<span class="badge text-bg-secondary">Test Updated</span>`
+            }
+
+
 
             if (test.description !== "") {
                 testDescDiv.style.display = 'block'
@@ -508,7 +598,7 @@ function showAttemptDetails(event, test, isTestDeleted) {
     document.getElementById('test-modal-dialog').classList.remove('modal-lg')
     document.getElementById('test-marks-modal').classList.remove('col-md-3')
     document.getElementById('test-marks-modal').classList.add('col-md-5')
-    document.getElementById('test-detail-title').innerHTML = `<i class="bi bi-info-circle-fill"></i> Attempt Details`
+    document.getElementById('test-detail-title').innerHTML = `Attempt Details`
 
     const modalTestTitleContainer = document.getElementById('test-title-modal')
     const modalSubjectContainer = document.getElementById('test-subject-modal')
@@ -556,7 +646,7 @@ function formatMarks(marks) {
 
 function formatPerc(marks, totMarks) {
     let percentage = "🚫"
-    if (totMarks === 0) {
+    if (!totMarks || totMarks === 0) {
         return percentage
     }
 
@@ -630,7 +720,6 @@ function deleteRecord() {
             console.error('Error fetching test data:', error);
         });
     }
-     
 }
 
 
@@ -665,7 +754,6 @@ function bulkDeleteRecords() {
         });
     }
     else if (currTestType === "attempted") {
-        console.log("called for attempts")
         fetch(`/tests/attempt/bulk-delete`, {
             method: 'POST',
             headers: {
@@ -690,8 +778,28 @@ function bulkDeleteRecords() {
         .catch(error => {
             console.error('Error fetching test data:', error);
         });
-        console.log(`Record with test id: ${Array.from(selectedTestIds)} deleted from Attempted Tests Tab`)
     }
+}
+
+function clearFilter() {
+    document.getElementById('filter-form').reset();
+}
+
+function getValueOrNull(elementId) {
+    const value = document.getElementById(elementId).value;
+    return value === '' ? null : value;
+}
+
+function convertToGlobalTime(inpId) {
+    const localTime = getValueOrNull(inpId)
+    if (localTime) {
+        return new Date(localTime).toISOString();
+    }
+    return localTime
+}
+
+function refetchData() {
+    fetchTests(currTestType, currPageNum, perPageRecords)
 }
 
 
