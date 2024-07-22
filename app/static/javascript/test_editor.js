@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     addMCQButton.addEventListener('click', () => addQuestion('mcq'));
     addResponseQuestionButton.addEventListener('click', () => addQuestion('response'));
 
+    const editorContainer = document.getElementById('test-editor-container');
     if (updateTestId) {
+        const fetchingDataMsgDiv = document.getElementById('is-fetching');
+        fetchingDataMsgDiv.classList.remove('d-none');
+
         fetch(`/tests/${updateTestId}`)
             .then(response => response.json().then(data => ({
                 status: response.status,
@@ -23,8 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 status,
                 body
             }) => {
+                fetchingDataMsgDiv.classList.add('d-none');
+                editorContainer.classList.remove('d-none');
                 setUpTestEditorForUpdation(body)
+                
             })
+    } else {
+        editorContainer.classList.remove('d-none');
     }
 
     // Autocomplete subjects suggestion (took help from ChatGPT)
@@ -225,6 +234,43 @@ document.addEventListener('DOMContentLoaded', () => {
             })
     });
 
+
+    // uploading various tests (for debugging)
+    if (!updateTestId) {
+        document.getElementById('test-data-json-upload').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById('test-data-json-file');
+            const file = fileInput.files[0];
+
+            if (file && file.type === "application/json") {
+                const reader = new FileReader();
+
+                reader.onload = function (event) {
+                    const fileContent = event.target.result;
+                    const jsonContent = JSON.parse(fileContent);
+
+                    fetch('/add-sample-tests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(jsonContent)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Success uploading test data:', data);
+                        })
+                        .catch((error) => {
+                            console.error('Error while uploading test data:', error);
+                        });
+                };
+
+                reader.readAsText(file);
+            }
+        });
+    }
+
 });
 
 function addQuestion(type, questionText = "", answerText = "", imageUrl="", posMarks="", negMarks="") {
@@ -273,7 +319,7 @@ function addQuestion(type, questionText = "", answerText = "", imageUrl="", posM
             <textarea name="${questionId}" placeholder="Enter question" class = "form-control">${questionText}</textarea>
             <div class="invalid-feedback" id="invalid-question-${questionId}"></div>
             <div class="position-relative mt-2 question-img-box" id="img-box-${questionId}" >
-            <img class="question-img"  id="img-${questionId}" src="${imageUrl}" alt="Question Image" />
+            <img class="question-img" id="img-${questionId}" src="${imageUrl}" alt="Question Image" />
             <div class="input-group-append">
                 <button type="button" class="position-absolute shadow btn btn-danger fixed-ht" onclick="removeQuestionImage('${questionId}')"
                     style = "right: 0;top: 0; border-radius: 0 6px 0 6px;">
@@ -478,6 +524,11 @@ function setUpTestEditorForUpdation(testData) {
             toTwoDigitFormat(question.marks_pos),
             toTwoDigitFormat(question.marks_neg)
         )
+
+        if (imgUrl !== "") {
+            setImageFileInputFromUrl(imgUrl, `img-inp-${questionID}`)
+        }
+
         if (questionType === 'mcq') {
             question.options.forEach(option => {
                 addOption(questionID, option.option_text, option.is_correct)
@@ -493,4 +544,40 @@ function setUpTestEditorForUpdation(testData) {
     currQuestionNegMarks = testData.questions[0].marks_neg
 
 }
+
+// From ChatGPT
+function imageUrlToBlob(imageUrl) {
+    return fetch(imageUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+            return blob;
+        })
+        .catch(error => {
+            console.error('Error fetching the image for question:', error);
+            throw error;
+        });
+}
+
+// From ChatGPT
+function setImageFileInputFromUrl(imageUrl, inputElementId) {
+    imageUrlToBlob(imageUrl)
+        .then(blob => {
+            const file = new File([blob], 'image.jpg', { type: blob.type });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            const fileInput = document.getElementById(inputElementId);
+            fileInput.files = dataTransfer.files;
+            console.log('File input set with image:', fileInput.files[0]);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+
 

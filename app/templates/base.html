@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
     <link rel="manifest" href="../static/images/site.webmanifest">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 </head>
 
@@ -27,13 +27,14 @@
         </div>
         
         <div style = "width: 20vh; margin-right: 5.5%;">
-            <a class="navbar-brand" href="/">
+            <a id="index-link" class="navbar-brand" href="/">
                 <img src="../static/images/PrepPilot name with logo.png" width="140vh">
             </a>
         </div>
         <div class="d-none d-lg-block">
             {% block nav_content %}{% endblock %}
         </div>
+        
         <div class="ms-auto d-flex align-items-center me-2 justify-content-end">
             <span id="nav-username" class="navbar-text fs-5 d-none d-xl-block" style="color: black; font-weight: bold;">
                 Username

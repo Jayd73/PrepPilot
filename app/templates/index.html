@@ -21,7 +21,8 @@
   <div class="input-group d-flex justify-content-center align-items-center" id="main-search-bar-container">
     <input type="text" id="search-inp" class="form-control" placeholder="Search" aria-label="Search"
       aria-describedby="search-icon">
-    <button class="btn secondary-col-1 search-btn" id="search-bar-search-btn" type="button"><i class="bi bi-search" onclick="refetchData()"></i></button>
+    <button class="btn text-secondary clear-search-btn" id="clear-search-tet-btn" type="button" onclick="clearSearchText()"><i class="bi bi-x-lg"></i></button>
+    <button class="btn secondary-col-1 search-btn" id="search-bar-search-btn" type="button" onclick="refetchData()"><i class="bi bi-search"></i></button>
     <button class="btn secondary-col-1 filter-btn" id="filter-btn" data-bs-toggle="dropdown" aria-expanded="false"
       type="button"><i class="bi bi-sliders"></i></button>
     <div class="dropdown-menu dropdown-menu-start w-100 p-2" id="search-and-filter-options" aria-labelledby="filter-btn">
@@ -458,7 +459,7 @@
 <div class="input-group d-none shadow position-fixed" id="goto-page-container" style="width: 18vh; min-width: 18vh;z-index: 600;">
   <input id="goto-page-inp" type="number" class="form-control" placeholder="Go to" aria-label="goto-page"
     aria-describedby="goto-span" onkeydown="removeNonDigit(event)" oninput="capInpVal(this, 1, 10000000)">
-  <button class="btn btn-primary" id="goto-page-btn" type="button">Go</button>
+  <button class="btn secondary-col-1" id="goto-page-btn" type="button">Go</button>
 </div>
 <!-- Go To Page input end -->
 
@@ -554,12 +555,12 @@
 
           <div class="row mb-1 d-flex justify-content-start align-items-center">
             <div class="col-1" style="width: max-content;">
-              <img id="author-avatar-modal" src="../static/images/placeholder_avatar.png" alt="Author Avatar">
+              <img class="author-avatar-onpage" id="author-avatar-modal" src="../static/images/placeholder_avatar.png" alt="Author Avatar">
             </div>
             <div class="col-11" style="width: max-content;">
               
               <div class="row">
-                <div class="col-12 ps-0 mt-0" id="test-author-modal" style="width: max-content; overflow-wrap: break-word;">
+                <div class="col-12 ps-0 mt-0" id="test-author-modal" style="width: max-content; word-break: break-word; overflow-wrap: break-word;">
                   <!-- Test author name -->
                 </div>
               </div>
@@ -697,15 +698,10 @@
   </div>
 </div>
 
-
-<!-- Fetching data animation modal -->
-<div></div>
-
+{% endblock %}
 
 {% block js %}
 <script src="../static/javascript/index.js"> </script>
-{% endblock %}
-
 {% endblock %}
 
 

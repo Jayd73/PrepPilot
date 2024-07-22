@@ -390,6 +390,14 @@ def provide_test(test_id):
     return jsonify(test_data), 200
 
 @login_required
+@app.route('/take-test/<int:test_id>', methods=[GET])
+def display_take_test_page(test_id):
+    if not db.session.query(exists().where(Test.id == test_id)).scalar():
+        return jsonify({ERROR: "Test with given id doesn't exist"}), 404
+    return render_template("take_test.html", test_id = test_id) 
+
+
+@login_required
 @admin_privilege_required
 @app.route('/tests/<int:test_id>', methods=[PUT])
 def update_test(test_id):
@@ -425,7 +433,7 @@ def update_test(test_id):
     test.last_updated = db.func.current_timestamp()
 
     db.session.commit()
-
+    flash("Test updated successully", SUCCESS_MSG)
     return jsonify({SUCCESS : "Test updated successfully"}), 200
 
 @login_required
@@ -629,6 +637,7 @@ def upload_user_avatar():
 
     return jsonify({ERROR: 'File upload failed'}), 500
 
+
 def add_questions_to_test(test_form, test):
     tot_test_marks = 0
     question_data = get_structured_inp_ids(list(test_form.keys()) + list(request.files.keys()))
@@ -730,6 +739,61 @@ def delete_subject_if_not_shared(test):
     if not has_other_same_subject_tests:
         db.session.delete(Subject.query.get(test.subject_id))
         db.session.commit()
+
+# Adding pre-wriiten tests for debugging
+@login_required
+@admin_privilege_required
+@app.route('/add-sample-tests', methods=[POST])
+def add_tests_to_db():
+    tests = request.get_json().get("tests")
+
+    for test in tests:
+        subject = Subject.query.filter_by(name = test["subject"]).first()
+        if not subject:
+            new_subject = Subject(name = test["subject"])
+            db.session.add(new_subject)
+            db.session.commit()
+            subject = new_subject
+
+        new_test = Test (
+                            subject_id = subject.id,
+                            title = test["title"], 
+                            description = test["description"], 
+                            duration_seconds = test["duration_seconds"],
+                            created_by = session.get(USER_ID)
+                        )
+        
+        db.session.add(new_test)
+        db.session.commit()
+
+        tot_test_marks = 0
+        for question in test["questions"]:
+            new_question = Question(
+                test_id = new_test.id,
+                question_text = question["question_text"], 
+                question_type = question["question_type"],
+                marks_pos = question["question_marks_pos"],
+                marks_neg = question["question_marks_neg"]
+            )
+
+            tot_test_marks += question["question_marks_pos"]
+
+            db.session.add(new_question)
+            db.session.commit()
+
+            for option in question["options"]:
+                new_option = QuestionOption(
+                    question_id = new_question.id,
+                    option_text = option["option_text"],
+                    is_correct = option["is_correct"]
+                )
+                db.session.add(new_option)
+                db.session.commit()
+
+        new_test.marks = tot_test_marks
+        db.session.commit()
+    return jsonify({SUCCESS: "Tests uploaded successfully"}), 200
+
 
 
 

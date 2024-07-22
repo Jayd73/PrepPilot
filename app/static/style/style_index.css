@@ -142,7 +142,7 @@ body {
 }
 
 
-#author-avatar-modal{
+.author-avatar-onpage{
     width: 6vh;
     height: 6vh;
     border-radius: 50%;
@@ -179,6 +179,24 @@ body {
 
 .pagination .page-link {
     color: var(--secondary-col-1-bg);
+}
+
+.clear-search-btn{
+    background-color: white;
+    border-color: lightgray;
+    border-width: 1px 1px 1px 0px;
+}
+
+.clear-search-btn:hover {
+    background-color: white;
+    border-color: lightgray;
+    border-width: 1px 1px 1px 0px;
+}
+
+.clear-search-btn:active {
+    background-color: white;
+    border-color: lightgray;
+    border-width: 1px 1px 1px 0px;
 }
 
 @media only screen and (max-width: 992px) {

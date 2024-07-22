@@ -168,6 +168,35 @@ function formatDuration(seconds) {
     return '';
 }
 
+function formatMarks(marks) {
+    var formatted = `${toTwoDigitFormat(marks)}`
+    if (marks == 1) {
+        return formatted + " mark"
+    }
+    return formatted + " marks"
+}
+
+function convertAndFormatToLocalTime(dateString) {
+    // Parse the date string
+    const date = new Date(dateString);
+
+    // Get the local time components
+    const options = {
+        weekday: 'short', 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true
+    };
+
+    // Format the date to the desired local format
+    const formattedDate = date.toLocaleString('en-US', options).replace(' AM', ' a.m.').replace(' PM', ' p.m.');
+    return formattedDate;
+}
+
+
 function timeToDuration(hrs, mins, seconds) {
     if (hrs == "" && mins == "" && seconds == "")
         return null

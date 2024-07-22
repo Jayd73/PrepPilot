@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}
+Test
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href="../static/style/style_take_test.css">
+{% endblock %}
+
+{% block menu_btn %}
+<button class="btn btn-light fs-4 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas"
+    aria-controls="sidebarOffcanvas">
+    <i class="bi bi-list"></i>
+</button>
+{% endblock %}
+
+
+{% block main %}
+<div id="main-container" class="container-fluid w-100 d-flex justify-content-center align-items-center">
+    <div class="row w-100 d-flex justify-content-center" id="test-details-container">
+        <div class="col-md-8">
+            <div class="container-fluid" style="padding: 2vh; margin-top: 5vh;">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="fs-5 d-flex justify-content-start align-items-center" id="is-fetching">
+                            <div class="spinner-border me-2" aria-hidden="true"></div>
+                            Fetching test data ...
+                        </div>
+            
+                        <div class="fs-5 fw-bold" id="done-fetching" style="display: none;">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            Your test is ready!
+                        </div>
+            
+                    </div>
+                </div>
+                <div id="test-details" style="display: none;">
+                    <div class="row w-100">
+                        <div class="col-12 fs-5 mb-2" id="test-title">
+                            <!-- Title -->
+                        </div>
+                    </div>
+                    <div class="row w-100">
+                        <div class="col-12 primary-col-2 mb-2 test-subject" id="test-subject">
+                            <!-- Subject -->
+                        </div>
+                    </div>
+                    <div class="row w-100 d-flex justify-content-start align-items-center mb-2">
+                        <div class="col-md-3 col-6">
+                            <i class="bi bi-check2-circle"></i>
+                            <span id="test-marks">
+                                <!-- Marks -->
+                            </span>
+                        </div>
+                        <div class="col-md-5 col-6">
+                            <i class="bi bi-hourglass-top"></i>
+                            <span id="test-duration">
+                                <!-- Duration -->
+                            </span>
+                        </div>
+                    </div>
+            
+                    <div class="row">
+                        <div class="col-12 mb-2" id="test-description" style="max-height: 29vh; overflow: auto;">
+                            <!-- Test description -->
+                        </div>
+                    </div>
+            
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <i class="bi bi-calendar-check"></i>
+                            Last updated on
+                            <div class="d-sm-block d-md-none w-100"></div>
+                            <span id="test-last-updated-time">
+                                <!-- Last updated time -->
+                            </span>
+                        </div>
+                    </div>
+            
+                    <div class="row mb-2 d-flex justify-content-start align-items-center">
+                        <div class="col-1" style="width: max-content; padding-right: 0px;">
+                            <img class="author-avatar-onpage" id="author-avatar" src="../static/images/placeholder_avatar.png"
+                                alt="Author Avatar" style="width: 8vh; height: 8vh;">
+                        </div>
+                        <div class="col-lg-10 col-8" style="padding-right: 0;">
+                            <div class="row">
+                                <div class="col-12" id="test-author" style="word-break: break-word; overflow-wrap: break-word;">
+                                    <!-- Author name -->
+                                </div>
+                                <div class="col-12" style="font-size: 2vh;">
+                                    <i class="bi bi-person-fill"></i>
+                                    Author
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4 d-flex justify-content-end">
+                        <div class="col-md-4">
+                            <button class="btn secondary-col-1 w-100" id="start-test-btn" type="button">
+                                <i class="bi bi-play-fill"></i>
+                                Start Test
+                            </button>
+                        </div>
+                    </div>
+            
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-100 p-2 d-none" id="test-screen">
+        <div class="row">
+            <div class="col-md-10">
+                <div class="row mb-2 d-flex justify-content-start align-items-center">
+                    <div class="col-md-7 fs-5" id="test-title-on-screen">
+                        <!-- Test title -->
+                    </div>
+                    <div class="d-sm-block d-md-none" style="margin-bottom: 1vh;"></div>
+                    <div class="col-md-5 d-flex justify-content-md-end align-items-center pe-4">
+                        <div class="primary-col-2 test-subject" id="test-subject-on-screen" style="margin-left: 0vh;">
+                            <!-- Test subject -->
+                        </div>
+                        <div style="margin-left: 2vh;">
+                            <i class="bi bi-check2-circle"></i>
+                            <span id="test-marks-on-screen">
+                                <!-- Marks -->
+                            </span>
+                        </div>
+                    </div>
+                </div>
+        
+        
+            </div>
+            <div class="col-md-2 mt-2">
+                <i id="test-time-left-icon" class="bi bi-hourglass-split"></i>
+                <span class="fs-6">
+                    Time Left:
+                </span>
+                
+                <div class="fs-2 fw-bold" id="test-time-left">
+                    00:00:00
+                </div>
+            </div>
+            <div class="d-sm-block d-md-none w-100 mb-2"></div>
+        
+        </div>
+
+        <div class="row mb-2 mt-md-neg-2">
+            <div class="col-md-10">
+                <div class="row d-flex justify-content-between align-items-center">
+                    <div class="col-md-2 col-2 fw-bold" id="question-number">
+                        <!-- Question Num -->
+                    </div>
+                    <div class="col-md-10 col-10 d-flex justify-content-end align-items-center">
+                        <div class="input-group" id="question-mks-inp-grp" style="width: max-content; margin-right: 1vh;">
+                            <span class="input-group-text">
+                                Marks
+                            </span>
+                            <span class="input-group-text">
+                                <i class="bi bi-check-circle text-success"></i>
+                            </span>
+                            <span class="input-group-text primary-col-2" id="question-mks-pos">
+                                <!-- Pos mks -->
+                            </span>
+                            <span class="input-group-text" id="question-mks-neg-icon">
+                                <i class="bi bi-x-circle text-danger"></i>
+                            </span>
+                            <span class="input-group-text primary-col-2" id="question-mks-neg">
+                                <!-- Neg mks -->
+                            </span>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        </div>
+
+
+        <div class="row mb-3">
+            <div class="col-md-10 fs-6" id="question-container">
+                <div class="row restrict-ht-sm" >
+                    <div class="col-md-7 restrict-ht-md">
+                        <div id="question-text">
+                            <!-- Question Text -->
+                        </div>
+                        <div class="mt-3" id="question-image-container" style="width: 100%; height: auto;">
+                            <!-- Question Image (optional) -->
+                            <img id="question-image" src="" alt="Question Image" style="width: 100%; height: auto; border-radius: 10px;"/>
+                        </div>
+                    </div>
+                    <div class="d-sm-block d-md-none w-100 mt-2"></div>
+                    <div class="col-md-5 restrict-ht-md">
+                        <span class="fw-bold" id="user-response-title"> <!-- Option or Response Title -->  </span>
+                        <form class="mt-3" id="user-response-inp">
+                            <!-- Options or Response Input -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 d-none d-md-block pt-2 pe-1" style="border-radius: 10px;">
+                <div class="d-flex justify-content-start align-items-center mb-2" style="cursor: pointer;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Question Palette
+                </div>
+                <div class="container p-0" id="question-palette" style="max-height: 60vh; overflow: auto;">
+                    <!-- Buttons in grid -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="row d-flex justify-content-between">
+            <div class="col-md-6">
+                <button class="btn secondary-col-1" type="button">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                    Mark & Next
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+                <button class="btn primary-col-1" type="button">
+                    <i class="bi bi-eraser-fill"></i>
+                    Clear Response
+                </button>
+            </div>
+            <div class="d-sm-block d-md-none w-100 mt-1"></div>
+            <div class="col-md-6 d-flex justify-content-sm-start justify-content-md-end">
+                <button class="btn secondary-col-1" type="button">
+                    <i class="bi bi-bookmark-fill"></i>
+                    Save & Next
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+                <button class="btn secondary-col-1 ms-1" type="button">
+                    <i class="bi bi-send-fill"></i>
+                    Submit Test
+                </button>
+            </div>
+        
+        </div>
+
+    </div>
+
+    
+</div>
+
+
+{% endblock %}
+
+{% block js %}
+<script type="text/javascript">
+    var testId = '{{ test_id | tojson }}'
+    testId = Number(testId)
+</script>
+
+<script src="../static/javascript/take_test.js"> </script>
+{% endblock %}

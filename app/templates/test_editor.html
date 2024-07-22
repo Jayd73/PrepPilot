@@ -9,7 +9,11 @@ Test Editor
 {% endblock %}
 
 {% block main %}
-<div class="container col-md-6 mt-5 mb-4">
+<div class="container-fluid col-md-6 mt-5 d-flex justify-content-start align-items-center d-none fs-5" id="is-fetching">
+  <div class="spinner-border me-2" aria-hidden="true"></div>
+  Fetching test data ...
+</div>
+<div class="container col-md-6 mt-5 mb-4 d-none" id="test-editor-container">
   <h2>Test Editor</h2>
   <form id="test-edit-form" class="mt-3">
     <div class="input-group mb-2">
@@ -105,8 +109,31 @@ Test Editor
       </div>
     </div>
 </form>
+
+{% if not update_test_id %}
+<!-- Upload json containting data for different tests (for debugging) -->
+ <div class="container-fluid w-100 mt-3">
+  <form id="test-data-json-upload">
+  <div class="row mb-2 d-flex justify-content-center align-items-center">
+      <div class="col-12">
+        <input class="form-control" type="file" id="test-data-json-file" accept=".json"
+          placeholder="Enter JSON file for test data">
+      </div>
+  </div>
+  <div class="row d-flex justify-content-start align-items-center">
+    <div class="col-6">
+      <button class="btn secondary-col-1 w-100" type="submit">Upload</button>
+    </div>
+  </div>
+  </form>
+ </div>
+<!-- Upload json end -->
+
+{% endif %}
+
 </div>
 
+{% endblock %}
 
 {% block js %}
 <script type="text/javascript">
@@ -114,6 +141,4 @@ Test Editor
   updateTestId = Number(updateTestId)
 </script>
 <script src="../static/javascript/test_editor.js"> </script>
-{% endblock %}
-
 {% endblock %}

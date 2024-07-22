@@ -1,4 +1,4 @@
-var perPageRecords = 2;
+var perPageRecords = 10;
 var selectedTestIds = new Set();
 var currPageTestIds = [];
 var currTestType;
@@ -61,6 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bulk-delete-confirm-btn').addEventListener('click', bulkDeleteRecords)
     document.getElementById('update-test-btn-modal').addEventListener('click', () => {
         window.location.href = `/test-editor?test_id=${currClickedTestId}`
+    })
+    document.getElementById('take-test-btn-modal').addEventListener('click', () => {
+         window.location.href = `/take-test/${currClickedTestId}`;
     })
 
     const searchInp = document.getElementById('search-inp')
@@ -416,7 +419,6 @@ function renderTests(tests, testType) {
             }
 
 
-
             if (test.description !== "") {
                 testDescDiv.style.display = 'block'
                 testDescDiv.textContent = test.description
@@ -429,7 +431,6 @@ function renderTests(tests, testType) {
             document.getElementById('test-last-updated-time-modal').innerHTML = `${convertAndFormatToLocalTime(test.last_updated)}`
             document.getElementById('test-author-modal').innerHTML = `${test.author_details.username}`
             
-
             if (test.author_details.avatar_url)
                 document.getElementById('author-avatar-modal').src = test.author_details.avatar_url
 
@@ -483,7 +484,8 @@ function renderPagination(totalPages, currentPage, testType, perPage) {
 
         const ellipsisBtn = document.createElement('li');
         ellipsisBtn.className = "page-item";
-        ellipsisBtn.innerHTML = `<a class="page-link" href="#" aria-label="..."><span aria-hidden="true">...</span></a>`;
+        ellipsisBtn.innerHTML = `
+        <a class="page-link" href="#" aria-label="..."><span aria-hidden="true">...</span></a>`;
         ellipsisBtn.addEventListener('click', (event) => {
             event.preventDefault();
             showGotoPageInputGroup(ellipsisBtn, testType, perPage, totalPages);
@@ -636,13 +638,6 @@ function showAttemptDetails(event, test, isTestDeleted) {
 
 }
 
-function formatMarks(marks) {
-    var formatted = `${toTwoDigitFormat(marks)}`
-    if (marks == 1) {
-        return formatted + " mark"
-    }
-    return formatted + " marks"
-}
 
 function formatPerc(marks, totMarks) {
     let percentage = "🚫"
@@ -662,25 +657,6 @@ function formatPerc(marks, totMarks) {
     return formattedPercentage + "%"
 }
 
-function convertAndFormatToLocalTime(dateString) {
-    // Parse the date string
-    const date = new Date(dateString);
-
-    // Get the local time components
-    const options = {
-        weekday: 'short', 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        hour12: true
-    };
-
-    // Format the date to the desired local format
-    const formattedDate = date.toLocaleString('en-US', options).replace(' AM', ' a.m.').replace(' PM', ' p.m.');
-    return formattedDate;
-}
 
 function deleteRecord() {
     bootstrap.Modal.getInstance(document.getElementById("deleteConfirmationModal")).hide();
@@ -800,6 +776,10 @@ function convertToGlobalTime(inpId) {
 
 function refetchData() {
     fetchTests(currTestType, currPageNum, perPageRecords)
+}
+
+function clearSearchText() {
+    document.getElementById('search-inp').value = '';
 }
 
 
