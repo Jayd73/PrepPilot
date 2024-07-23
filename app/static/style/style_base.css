@@ -48,7 +48,6 @@ button.primary-col-2:active {
     background-color: #604CC3;
     border-color: #604CC3;
     color: whitesmoke;
-   
 }
 
 button.secondary-col-1:disabled {
@@ -68,6 +67,14 @@ button.secondary-col-1:active {
     background-color: #372591; 
     border-color: #372591;
     color: whitesmoke;
+}
+
+.secondary-col-1-border {
+    border-color: #604CC3 !important;
+}
+
+.secondary-col-1-content {
+    color: #604CC3;
 }
 
 .secondary-col-2{

@@ -352,8 +352,8 @@ def create_test():
     return jsonify({SUCCESS: 'Test created and saved successfully'}), 200
 
 
-@login_required
 @app.route('/tests/<int:test_id>', methods=[GET])
+@login_required
 def provide_test(test_id):
     test = Test.query.get(test_id)
     if not test: return jsonify({ERROR : "Test with given id doesn't exist"}), 404
@@ -389,17 +389,18 @@ def provide_test(test_id):
     
     return jsonify(test_data), 200
 
-@login_required
+
 @app.route('/take-test/<int:test_id>', methods=[GET])
+@login_required
 def display_take_test_page(test_id):
     if not db.session.query(exists().where(Test.id == test_id)).scalar():
         return jsonify({ERROR: "Test with given id doesn't exist"}), 404
     return render_template("take_test.html", test_id = test_id) 
 
 
+@app.route('/tests/<int:test_id>', methods=[PUT])
 @login_required
 @admin_privilege_required
-@app.route('/tests/<int:test_id>', methods=[PUT])
 def update_test(test_id):
     test = Test.query.get(test_id)
     if not test: return jsonify({ERROR : "Test with given id doesn't exist"}), 404
@@ -436,9 +437,10 @@ def update_test(test_id):
     flash("Test updated successully", SUCCESS_MSG)
     return jsonify({SUCCESS : "Test updated successfully"}), 200
 
+
+@app.route('/tests/<int:test_id>', methods=[DELETE])
 @login_required
 @admin_privilege_required
-@app.route('/tests/<int:test_id>', methods=[DELETE])
 def delete_test(test_id):
     test = Test.query.get(test_id)
     if not test: return jsonify({ERROR : "Test with given id doesn't exist"}), 404
@@ -452,9 +454,9 @@ def delete_test(test_id):
     return jsonify({SUCCESS: "Test deleted successfully"}), 200
 
 # with help from ChatGPT
+@app.route('/tests/bulk-delete', methods=[POST])
 @login_required
 @admin_privilege_required
-@app.route('/tests/bulk-delete', methods=[POST])
 def bulk_delete_tests():
     test_ids = request.json.get('test_ids', [])
     test_ids = [ test_id for test_id in test_ids ]
@@ -510,17 +512,16 @@ def bulk_delete_tests():
 
     return jsonify({"SUCCESS": "Tests deleted successfully"}), 200
 
-
-
-@login_required
 @app.route('/tests/attempt/<int:test_id>', methods = [POST])
+@login_required
 def add_test_attempt(test_id):
     test = Test.query.get(test_id)
     if not test: return jsonify({ERROR: "Test with the given id doesn't exist"}), 404
     user_id = session.get(USER_ID)
-    test_attempt_time = db.func.current_timestamp()
-    test_score = safe_int(request.form.get("test_score"))
-    test_duration_seconds = safe_int(request.form.get("test_duration"))
+    attempt_details = request.get_json()
+    test_attempt_time = datetime.fromisoformat(attempt_details.get("test_attempt_start_time"))
+    test_score = safe_int(attempt_details.get("test_score"))
+    test_duration_seconds = safe_int(attempt_details.get("test_duration"))
 
     user_test = UserTest.query.filter_by(test_id=test.id, user_id = user_id).first()
     if not user_test:
@@ -548,8 +549,8 @@ def add_test_attempt(test_id):
     db.session.commit()
     return jsonify({"success": "Test attempt saved successfully"}), 200
 
-@login_required
 @app.route('/tests/attempt/<int:test_id>', methods = [DELETE])
+@login_required
 def delete_user_test(test_id):
     user_test = UserTest.query.filter_by(test_id = test_id, user_id = session.get(USER_ID)).first()
     if not user_test: return jsonify({ERROR: "Cannot find requested attempt record"}), 404
@@ -557,8 +558,8 @@ def delete_user_test(test_id):
     db.session.commit()
     return jsonify({"success": "Attempt for given test deleted successfully"}), 200
 
-@login_required
 @app.route('/tests/attempt/bulk-delete', methods = [POST])
+@login_required
 def bulk_delete_user_tests():
     test_ids = request.json.get('test_ids', [])
     test_ids = [ test_id for test_id in test_ids ]
@@ -575,8 +576,8 @@ def bulk_delete_user_tests():
 
     return jsonify({"success": "Attempts for given tests deleted successfully"}), 200
 
-@login_required
 @app.route('/subjects', methods=[GET])
+@login_required
 def search_subjects():
     query = request.args.get('query', '')
     if query:
@@ -587,19 +588,18 @@ def search_subjects():
     return jsonify(subjects_list)
 
 # With help from ChatGPT
-@login_required
 @app.route('/uploads/user-avatars/<filename>')
+@login_required
 def provide_user_avatar_file(filename):
     return send_from_directory(app.config['USER_AVATAR_UPLOAD_FOLDER'], filename)
 
-@login_required
 @app.route('/uploads/question-images/<filename>')
+@login_required
 def provide_question_image_file(filename):
     return send_from_directory(app.config['QUESTION_IMG_UPLOAD_FOLDER'], filename)
 
-
-@login_required
 @app.route('/users/<identifier>', methods=[GET])
+@login_required
 def provide_user_details(identifier):
     if identifier == 'current-user':
         user_id = session.get(USER_ID)
@@ -616,9 +616,8 @@ def provide_user_details(identifier):
         return jsonify({"username": user.username, "email": user.email, "avatar_path": avatar_url}), 200
     return jsonify({ERROR: "No user found"}), 400
 
-
-@login_required
 @app.route('/users/current-user/avatar', methods=[POST])
+@login_required
 def upload_user_avatar():
     if 'avatar' not in request.files:
         return jsonify({ERROR: 'No avatar file detected'}), 400
@@ -741,9 +740,9 @@ def delete_subject_if_not_shared(test):
         db.session.commit()
 
 # Adding pre-wriiten tests for debugging
+@app.route('/add-sample-tests', methods=[POST])
 @login_required
 @admin_privilege_required
-@app.route('/add-sample-tests', methods=[POST])
 def add_tests_to_db():
     tests = request.get_json().get("tests")
 

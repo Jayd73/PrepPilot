@@ -17,7 +17,7 @@ Test
 
 
 {% block main %}
-<div id="main-container" class="container-fluid w-100 d-flex justify-content-center align-items-center">
+<div class="container-fluid w-100 d-flex justify-content-center align-items-center" id="main-container">
     <div class="row w-100 d-flex justify-content-center" id="test-details-container">
         <div class="col-md-8">
             <div class="container-fluid" style="padding: 2vh; margin-top: 5vh;">
@@ -110,11 +110,11 @@ Test
         </div>
     </div>
 
-    <div class="w-100 p-2 d-none" id="test-screen">
+    <div class="w-100 p-2 d-none px-lg-5" id="test-screen">
         <div class="row">
             <div class="col-md-10">
                 <div class="row mb-2 d-flex justify-content-start align-items-center">
-                    <div class="col-md-7 fs-5" id="test-title-on-screen">
+                    <div class="col-md-7 fs-5 fw-bold" id="test-title-on-screen">
                         <!-- Test title -->
                     </div>
                     <div class="d-sm-block d-md-none" style="margin-bottom: 1vh;"></div>
@@ -181,7 +181,7 @@ Test
 
         <div class="row mb-3">
             <div class="col-md-10 fs-6" id="question-container">
-                <div class="row restrict-ht-sm" >
+                <div class="row restrict-ht-sm">
                     <div class="col-md-7 restrict-ht-md">
                         <div id="question-text">
                             <!-- Question Text -->
@@ -194,7 +194,7 @@ Test
                     <div class="d-sm-block d-md-none w-100 mt-2"></div>
                     <div class="col-md-5 restrict-ht-md">
                         <span class="fw-bold" id="user-response-title"> <!-- Option or Response Title -->  </span>
-                        <form class="mt-3" id="user-response-inp">
+                        <form class="mt-3" id="user-response-form">
                             <!-- Options or Response Input -->
                         </form>
                     </div>
@@ -206,7 +206,7 @@ Test
                     <i class="bi bi-info-circle me-1"></i>
                     Question Palette
                 </div>
-                <div class="container p-0" id="question-palette" style="max-height: 60vh; overflow: auto;">
+                <div class="container p-0" id="question-palette" style="height: 60vh; overflow: auto;">
                     <!-- Buttons in grid -->
                 </div>
             </div>
@@ -214,24 +214,24 @@ Test
         
         <div class="row d-flex justify-content-between">
             <div class="col-md-6">
-                <button class="btn secondary-col-1" type="button">
+                <button class="btn secondary-col-1" id="mark-and-next-btn" type="button">
                     <i class="bi bi-clipboard2-check-fill"></i>
                     Mark & Next
                     <i class="bi bi-arrow-right"></i>
                 </button>
-                <button class="btn primary-col-1" type="button">
+                <button class="btn primary-col-1" id="clear-response-btn" type="button">
                     <i class="bi bi-eraser-fill"></i>
                     Clear Response
                 </button>
             </div>
             <div class="d-sm-block d-md-none w-100 mt-1"></div>
             <div class="col-md-6 d-flex justify-content-sm-start justify-content-md-end">
-                <button class="btn secondary-col-1" type="button">
+                <button class="btn secondary-col-1" id="save-and-next-btn" type="button">
                     <i class="bi bi-bookmark-fill"></i>
                     Save & Next
                     <i class="bi bi-arrow-right"></i>
                 </button>
-                <button class="btn secondary-col-1 ms-1" type="button">
+                <button class="btn secondary-col-1 ms-1" id="submit-test-btn" type="button">
                     <i class="bi bi-send-fill"></i>
                     Submit Test
                 </button>
