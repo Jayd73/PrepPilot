@@ -22,7 +22,7 @@
     <input type="text" id="search-inp" class="form-control" placeholder="Search" aria-label="Search"
       aria-describedby="search-icon">
     <button class="btn text-secondary clear-search-btn" id="clear-search-tet-btn" type="button" onclick="clearSearchText()"><i class="bi bi-x-lg"></i></button>
-    <button class="btn secondary-col-1 search-btn" id="search-bar-search-btn" type="button" onclick="refetchData()"><i class="bi bi-search"></i></button>
+    <button class="btn secondary-col-2 search-btn" id="search-bar-search-btn" type="button" onclick="refetchData()"><i class="bi bi-search"></i></button>
     <button class="btn secondary-col-1 filter-btn" id="filter-btn" data-bs-toggle="dropdown" aria-expanded="false"
       type="button"><i class="bi bi-sliders"></i></button>
     <div class="dropdown-menu dropdown-menu-start w-100 p-2" id="search-and-filter-options" aria-labelledby="filter-btn">
@@ -412,14 +412,11 @@
     </div>
     <div class="col-md-10 content">
       <div class="row" id="top-bar" >
-      <!-- Seach Bar for lesser width screen -->
+
       <div class="d-lg-none search-bar-container" id="search-bar-container-short-width">
         <!-- Search Bar  -->
       </div>
-      <!-- Search Bar lesser width end -->
-
       
-
       <!-- Pagination -->
       
         <div class="col-lg-12">
@@ -584,7 +581,7 @@
             </div>
 
             <div class="row mb-2">
-              <div class="col-md-5 col-6" id="test-best-score-modal">
+              <div class="col-md-6 col-7" id="test-best-score-modal">
                 <!-- Best Score -->
               </div>
 
@@ -602,7 +599,7 @@
             <div class="row mb-2 d-flex justify-content-start align-items-center">
               <div class="col-md-3 pe-md-1" style="width: max-content;">
                 <i class="bi bi-calendar-event"></i>
-                Best score achieved on
+                Best Score Achieved on
               </div>
               <div class="col-md-9 col-12 ps-lg-0" id="test-best-score-achieved-time-modal" style="width: max-content;">
                 <!-- Test last updated time -->
@@ -627,7 +624,7 @@
 
       <div id="test-details-modal-footer" class="modal-footer d-flex justify-content-end align-items-center">
         <button id="delete-btn-modal" type="button" class="btn btn-danger hidden-component" data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal">Delete</button>
-        <button id="update-test-btn-modal" type="button" class="btn btn-primary" style="display: none;"><i class="bi bi-pencil-square"></i>&nbsp;Edit Test</button>
+        <button id="update-test-btn-modal" type="button" class="btn secondary-col-2" style="display: none;"><i class="bi bi-pencil-square"></i>&nbsp;Edit Test</button>
         <button id="take-test-btn-modal" type="button" class="btn secondary-col-1"><i class="bi bi-list-task"></i> &nbsp;Take test</button>
       </div>
       

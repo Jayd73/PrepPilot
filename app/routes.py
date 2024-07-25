@@ -520,8 +520,8 @@ def add_test_attempt(test_id):
     user_id = session.get(USER_ID)
     attempt_details = request.get_json()
     test_attempt_time = datetime.fromisoformat(attempt_details.get("test_attempt_start_time"))
-    test_score = safe_int(attempt_details.get("test_score"))
-    test_duration_seconds = safe_int(attempt_details.get("test_duration"))
+    test_score = attempt_details.get("test_score")
+    test_duration_seconds = attempt_details.get("test_duration_seconds")
 
     user_test = UserTest.query.filter_by(test_id=test.id, user_id = user_id).first()
     if not user_test:

@@ -38,8 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Search bar set up
     const mediaQuery = window.matchMedia('(max-width: 768px)');
-    handleScreenWidthChange(mediaQuery);
-    mediaQuery.addEventListener('change', handleScreenWidthChange);
+    shiftContentBasedOnScreenWidth(mediaQuery, 'main-search-bar-container', 'search-bar-container-long-width', 'search-bar-container-short-width');
+    mediaQuery.addEventListener('change', (e) => { 
+        shiftContentBasedOnScreenWidth(e, 'main-search-bar-container', 'search-bar-container-long-width', 'search-bar-container-short-width')
+    });
 
     document.getElementById('sort-btn').addEventListener('click', () => {
         hideDropdownOnBtnClick('sort-options-btn')
@@ -76,25 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
-
-// Help from ChatGPT
-function handleScreenWidthChange(e) {
-    const sbContainerLongWidth = document.getElementById('search-bar-container-long-width');
-    const sbContainerShortWidth = document.getElementById('search-bar-container-short-width');
-    const sbMainContainer = document.getElementById('main-search-bar-container');
-
-    if (e.matches) {
-      // Screen width is below the threshold, move child to div2
-      if (sbMainContainer.parentNode === sbContainerLongWidth) {
-        sbContainerShortWidth.appendChild(sbMainContainer);
-      }
-    } else {
-      // Screen width is above the threshold, move child back to div1
-      if (sbMainContainer.parentNode === sbContainerShortWidth) {
-        sbContainerLongWidth.appendChild(sbMainContainer);
-      }
-    }
-}
 
 function hideDropdownOnBtnClick(dropdownToggleBtnId) {
     const dropdownToggleButton = document.getElementById(dropdownToggleBtnId);
@@ -324,7 +307,7 @@ function renderTests(tests, testType) {
         testRow.className = 'row test-row light-bg fs-6 ms-1 mb-1';
         if (!test.title) {
             isTestDeleted = true
-            test.title = `[Test Deleted] - Last Attempt on ${convertAndFormatToLocalTime(test.last_attempted_start_time)}`
+            test.title = `[Test Deleted] - Last Attempted on ${convertAndFormatToLocalTime(test.last_attempted_start_time)}`
             testRow.innerHTML = `
             <div class="col-lg-9 text-muted text-col-content test-title">
                 <div style="overflow: hidden;">
@@ -409,8 +392,9 @@ function renderTests(tests, testType) {
             document.getElementById('test-attempt-details').style.display = "none"
             document.getElementById('test-details-modal-footer').classList.remove("d-none")
             document.getElementById('test-modal-dialog').classList.add('modal-lg')
+            document.getElementById('test-marks-modal').classList.remove('col-md-6')
             document.getElementById('test-marks-modal').classList.add('col-md-3')
-            document.getElementById('test-marks-modal').classList.remove('col-md-5')
+            
             testDetailModalTitle.innerHTML = `Test Details`
             testTitle.classList.remove('text-muted')
 
@@ -599,7 +583,7 @@ function showAttemptDetails(event, test, isTestDeleted) {
     document.getElementById('test-details-modal-footer').classList.add("d-none")
     document.getElementById('test-modal-dialog').classList.remove('modal-lg')
     document.getElementById('test-marks-modal').classList.remove('col-md-3')
-    document.getElementById('test-marks-modal').classList.add('col-md-5')
+    document.getElementById('test-marks-modal').classList.add('col-md-6')
     document.getElementById('test-detail-title').innerHTML = `Attempt Details`
 
     const modalTestTitleContainer = document.getElementById('test-title-modal')
@@ -629,9 +613,9 @@ function showAttemptDetails(event, test, isTestDeleted) {
     
     document.getElementById('test-attempts-modal').innerHTML = `<i class="bi bi-bar-chart-fill"></i> Attempts: ${toTwoDigitFormat(test.attempts)}`
     document.getElementById('test-last-attempted-time-modal').innerHTML = `${convertAndFormatToLocalTime(test.last_attempted_start_time)}`
-    document.getElementById('test-best-score-modal').innerHTML = `<i class="bi bi-trophy-fill"></i> Best: ${formatMarks(test.best_score)}`
+    document.getElementById('test-best-score-modal').innerHTML = `<i class="bi bi-trophy-fill"></i> Best Score: ${formatMarks(test.best_score)}`
     document.getElementById('test-best-score-perc-modal').innerHTML = `<i class="bi bi-award-fill"></i> <b style="color: green">${formatPerc(test.best_score, test.total_marks)}</b>`
-    document.getElementById('test-best-score-duration-modal').innerHTML = `<i class="bi bi-hourglass-bottom"></i> Best score time: ${formatDuration(test.best_score_duration_seconds)}`
+    document.getElementById('test-best-score-duration-modal').innerHTML = `<i class="bi bi-hourglass-bottom"></i> Best Score Time: ${formatDuration(test.best_score_duration_seconds)}`
     document.getElementById('test-best-score-achieved-time-modal').innerHTML = `${convertAndFormatToLocalTime(test.best_score_attempt_start_time)}`
     
     modal.show();

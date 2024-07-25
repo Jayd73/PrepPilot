@@ -288,7 +288,7 @@ function addQuestion(type, questionText = "", answerText = "", imageUrl="", posM
                 <div class = "container-fluid d-flex justify-content-between align-items-center">
                     <span class="question-num">Q${questionCount}.</span>
                     <div class="input-group" style="width: max-content">
-                        <button type="button" class="btn btn-primary fixed-ht" onclick="document.getElementById('img-inp-${questionId}').click();">
+                        <button type="button" class="btn secondary-col-2 fixed-ht" onclick="document.getElementById('img-inp-${questionId}').click();">
                         <input type="file" name="img-inp-${questionId}" id="img-inp-${questionId}" onchange="showImage('${questionId}', this)" class="form-control" accept="image/*" style="display: none;">
                         <i class="bi bi-image"></i>
                         </button>

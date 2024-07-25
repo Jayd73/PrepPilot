@@ -224,3 +224,22 @@ function showToastMessage(message, messageType = "normal") {
     dynamicToastMsgContainer.classList.add(currToastBgColorClass)
     bootstrap.Toast.getOrCreateInstance(dynamicToastMsgContainer).show()
 }
+
+// Help from ChatGPT
+function shiftContentBasedOnScreenWidth(e, contentContainerId, longerWidthContainerId, shorterWidthContainerId) {
+    const containerLongWidth = document.getElementById(longerWidthContainerId);
+    const containerShortWidth = document.getElementById(shorterWidthContainerId);
+    const contentMainContainer = document.getElementById(contentContainerId);
+
+    if (e.matches) {
+      // Screen width is below the threshold, move child to div2
+      if (contentMainContainer.parentNode === containerLongWidth) {
+        containerShortWidth.appendChild(contentMainContainer);
+      }
+    } else {
+      // Screen width is above the threshold, move child back to div1
+      if (contentMainContainer.parentNode === containerShortWidth) {
+        containerLongWidth.appendChild(contentMainContainer);
+      }
+    }
+}

@@ -1,16 +1,24 @@
 var testData = null;
 var currQuestionIdx = 0;
 var currClickedPalatteBtn = null;
+var questionVisitedAtTime = null;
+var testStartTime = null;
+var submitConfirmModal = null;
+var userTestScore = 0
+var remainingSeconds = null;
+var countdownTimer = null;
 
 const Q_ANS_SAVED = "ans";
 const Q_MARKED_FOR_REVIEW = "marked";
 const Q_MARKED_FOR_REVIEW_ANS_SAVED = "marked ans saved";
-const Q_NOT_ANSWERED = "not ans";
+const Q_ANS_NOT_SAVED = "not saved";
 const Q_NOT_VISITED = "not visited";
 
 const MCQ = "MCQ"
 const MSQ = "MSQ"
 const RESP = "RESP"
+
+const SHOW_OFFCANVAS_THRESHOLD = 991
 
 document.addEventListener('DOMContentLoaded', () => {
     //disable clicks on navbar. uncomment the following after work on this page is done
@@ -30,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             testData = data;
             testData.questions.forEach(question => {
                 question.status = Q_NOT_VISITED
+                question.time_spent = 0
             });
             fillUpTestDetails()
 
@@ -40,12 +49,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('start-test-btn').addEventListener('click', setUpforTest)
     document.getElementById('clear-response-btn').addEventListener('click', clearUserResponse)
+    document.getElementById('submit-test-btn').addEventListener('click', handleTestSubmit)
+    document.getElementById('submit-confirm-btn').addEventListener('click', submitTest)
+    document.getElementById('submit-decline-btn').addEventListener('click', closeSubmitConfirmModel)
     document.getElementById('mark-and-next-btn').addEventListener('click', () => {
         saveUserResponse()
         testData.questions[currQuestionIdx].status = Q_MARKED_FOR_REVIEW
         formatBtnForQuestionAt(currQuestionIdx)
         loadNextQuestion()
     })
+
     document.getElementById('save-and-next-btn').addEventListener('click', () => {
         saveUserResponse()
         changeQuestionStatusAfterSave()
@@ -53,9 +66,44 @@ document.addEventListener('DOMContentLoaded', () => {
         loadNextQuestion()
     })
 
+    document.getElementById('question-palette-legend').addEventListener('click', (event) => {
+        event.stopPropagation()
+    })
+
+    // Shifting question palette
+    const mediaQuery = window.matchMedia(`(max-width: ${SHOW_OFFCANVAS_THRESHOLD}px)`);
+    shiftContentBasedOnScreenWidth(mediaQuery, 'question-palette-container', 'question-palette-long-width-container', 'question-palette-short-width-container');
+    mediaQuery.addEventListener('change', (e) => { 
+        shiftContentBasedOnScreenWidth(e, 'question-palette-container', 'question-palette-long-width-container', 'question-palette-short-width-container')
+    });
+
+    function changePaletteLegendAnchorPt() {
+        const questionPaletteContainer = document.getElementById('question-palette-container')
+        if (window.innerWidth <= SHOW_OFFCANVAS_THRESHOLD) { 
+            questionPaletteContainer.classList.remove('dropstart')
+        } else {
+            questionPaletteContainer.classList.add('dropstart')
+        }
+    }
+
+    function hideSideBarIfScreenWidthIsBig() { 
+        if (window.innerWidth > SHOW_OFFCANVAS_THRESHOLD) { 
+            hideSideBarIfOpen()
+        }
+    }
+
+    changePaletteLegendAnchorPt()
+    hideSideBarIfScreenWidthIsBig()
+
+    window.addEventListener('resize', () => { 
+        changePaletteLegendAnchorPt()
+        hideSideBarIfScreenWidthIsBig()
+    });
+
 })
 
 function setUpforTest() {
+    testStartTime = new Date()
     document.getElementById('test-details-container').classList.add('d-none');
     document.getElementById('test-screen').classList.remove('d-none');
     setTestDetailsOnTestScreen()
@@ -95,21 +143,21 @@ function startTestTimer() {
     const timer = document.getElementById('test-time-left')
     const timeLeftIcon = document.getElementById('test-time-left-icon')
 
-    let duration = testData.duration_seconds;
+    remainingSeconds = testData.duration_seconds;
 
-    timer.innerHTML = formatTimeLeft(duration)
+    timer.innerHTML = formatTimeLeft(remainingSeconds)
     timer.style.color = abv_threshold_1_col
 
-    const countdown = setInterval(function() {
-        duration--;
-        timer.innerHTML = formatTimeLeft(duration);
-        if (duration <= 0) {
-            clearInterval(countdown);
+    countdownTimer = setInterval(function() {
+        remainingSeconds--;
+        timer.innerHTML = formatTimeLeft(remainingSeconds);
+        if (remainingSeconds <= 0) {
+            clearInterval(countdownTimer);
             timeLeftIcon.classList.remove('bi-hourglass-split')
             timeLeftIcon.classList.add('bi-hourglass-bottom')
             return;
         }
-        const remaining_time_perc = (duration / testData.duration_seconds) * 100;
+        const remaining_time_perc = (remainingSeconds / testData.duration_seconds) * 100;
         if (remaining_time_perc > threshold_1_perc)
             timer.style.color = abv_threshold_1_col
         else if (remaining_time_perc > threshold_2_perc)
@@ -127,6 +175,7 @@ function formatTimeLeft(seconds) {
         minutes,
         remainingSeconds
     } = convertDuration(seconds);
+    
     hours = toTwoDigitFormat(hours)
     minutes = toTwoDigitFormat(minutes)
     remainingSeconds = toTwoDigitFormat(remainingSeconds)
@@ -142,38 +191,37 @@ function formatTimeLeft(seconds) {
 function generateQuestionPalette() {
     const totQuestions = testData.questions.length;
     const palette = document.getElementById('question-palette');
-    const maxCols = 4;
+    const maxColms = 4;
     const btnNotVisitedBgColClass = "btn-light"
-    const currPalatteBtnBgColClass = "btn-secondary"
+    const currPalatteBtnBgColClass = "secondary-col-2"
 
     palette.innerHTML = '';
 
     const parentWidth = palette.clientWidth;
-    const buttonWidth = Math.floor(parentWidth / maxCols);
+    const buttonWidth = Math.floor(parentWidth / maxColms);
 
     let row;
     for (let i = 1; i <= totQuestions; i++) {
-        if ((i - 1) % maxCols === 0) {
+        if ((i - 1) % maxColms === 0) {
             row = document.createElement('div');
             row.className = 'row w-100 m-0 justify-content-start align-items-center';
             row.style.overflowX = "hidden"
             row.style.overflowY = "hidden"
             palette.appendChild(row);
         }
-        const col = document.createElement('div');
-        col.className = `col-${Math.floor(12 / maxCols)} p-0 pe-2 pb-2`;
+        const colm = document.createElement('div');
+        colm.className = `col-${Math.floor(12 / maxColms)} p-0 pe-2 pb-2`;
         const button = document.createElement('button');
         button.setAttribute('data-question-id', i - 1);
         button.setAttribute('data-bg-col-class-not-curr', btnNotVisitedBgColClass)
         button.setAttribute('data-bg-col-class-curr', currPalatteBtnBgColClass)
-        button.setAttribute("data-bg-col-class", btnNotVisitedBgColClass)
         button.className = `btn ${btnNotVisitedBgColClass} w-100 position-relative shadow-sm`
         button.style.width = `${buttonWidth}px`;
         button.style.textAlign = 'center';
         button.innerHTML = i
         button.addEventListener('click', handlePalatteBtnClick)
-        col.appendChild(button);
-        row.appendChild(col);
+        colm.appendChild(button);
+        row.appendChild(colm);
     }
 }
 
@@ -184,7 +232,7 @@ function formatBtnForQuestionAt(questionIdx) {
     const ansSavedBorderCol = "border-success"
     const markedForReviewBorderCol = "secondary-col-1-border"
     const markedForReviewAnsSavedBorderCol = "secondary-col-1-border"
-    const notAnsweredBorderCol = "border-danger"
+    const ansNotSavedBorderCol = "border-danger"
 
     let statusIconName = ""
     let statusIconColClass = ""
@@ -211,11 +259,11 @@ function formatBtnForQuestionAt(questionIdx) {
             questionBtn.classList.add(markedForReviewAnsSavedBorderCol)
             questionBtn.setAttribute("data-border-col-class", markedForReviewAnsSavedBorderCol)
             break;
-        case Q_NOT_ANSWERED:
-            statusIconName = "bi-exclamation-diamond-fill"
+        case Q_ANS_NOT_SAVED:
+            statusIconName = "bi-exclamation-circle-fill"
             statusIconColClass = "text-danger"
-            questionBtn.classList.add(notAnsweredBorderCol)
-            questionBtn.setAttribute("data-border-col-class", notAnsweredBorderCol)
+            questionBtn.classList.add(ansNotSavedBorderCol)
+            questionBtn.setAttribute("data-border-col-class", ansNotSavedBorderCol)
             break;
         default:
             questionBtn.classList.remove("border")
@@ -225,29 +273,37 @@ function formatBtnForQuestionAt(questionIdx) {
 
     questionBtn.innerHTML = `${questionIdx + 1}
         <span class="position-absolute top-100 start-100 translate-middle p-2" style="font-size: 2vh;">
-            <i class="bi ${statusIconName} ${statusIconColClass} rounded-circle" style="background-color:white"></i>
+            <i class="bi ${statusIconName} ${statusIconColClass} rounded-circle" style="background-color:white; padding-inline: 0.3vh"></i>
         </span>`
 }
 
 function handlePalatteBtnClick(event) {
     const questionIdx = Number(event.target.closest('button').getAttribute('data-question-id'))
+    hideSideBarIfOpen()
     moveToQuestionAt(questionIdx)
 }
 
 function moveToQuestionAt(nextQuestionIdx) {
+    const now = new Date()
     const currQuestion = testData.questions[currQuestionIdx]
     const nextQuestionBtn = getPaletteBtnFromQuestionIdx(nextQuestionIdx)
 
     if (!(currQuestionIdx == nextQuestionIdx) && currQuestion.status === Q_NOT_VISITED) {
-        currQuestion.status = Q_NOT_ANSWERED
+        currQuestion.status = Q_ANS_NOT_SAVED
         formatBtnForQuestionAt(currQuestionIdx)
     }
     if (currClickedPalatteBtn) { 
-        currClickedPalatteBtn.classList.remove(currClickedPalatteBtn.getAttribute('data-bg-col-class'))
+        currClickedPalatteBtn.classList.remove(currClickedPalatteBtn.getAttribute('data-bg-col-class-curr'))
         currClickedPalatteBtn.classList.add(currClickedPalatteBtn.getAttribute('data-bg-col-class-not-curr'))
     }
+    
+    if (!questionVisitedAtTime) {
+        questionVisitedAtTime = now
+    }
+    currQuestion.time_spent += now - questionVisitedAtTime
     currQuestionIdx = nextQuestionIdx
-    nextQuestionBtn.classList.remove(nextQuestionBtn.getAttribute('data-bg-col-class'))
+    questionVisitedAtTime = now
+    nextQuestionBtn.classList.remove(nextQuestionBtn.getAttribute('data-bg-col-class-not-curr'))
     nextQuestionBtn.classList.add(nextQuestionBtn.getAttribute('data-bg-col-class-curr'))
     currClickedPalatteBtn = nextQuestionBtn
     setQuestionOnScreen(currQuestionIdx)
@@ -320,15 +376,15 @@ function setQuestionOnScreen(questionIdx) {
         optionForm.appendChild(ansInpDiv)
     }
 
-    function updateQuestionTitle() {        
+    function modifyQuestionTitleForSmallWidth() {        
         if (window.innerWidth < 576) { 
             questionTitle.innerHTML = `Q${questionIdx + 1}.`
         } else {
             questionTitle.innerHTML = `Question ${toTwoDigitFormat(questionIdx + 1)}.`
         }
     }
-    updateQuestionTitle()
-    window.addEventListener('resize', updateQuestionTitle);
+    modifyQuestionTitleForSmallWidth()
+    window.addEventListener('resize', modifyQuestionTitleForSmallWidth);
 }
 
 function saveUserResponse() {
@@ -362,8 +418,7 @@ function changeQuestionStatusAfterSave() {
 function loadNextQuestion() {
     if (currQuestionIdx == testData.questions.length - 1)
         return
-    currQuestionIdx += 1
-    moveToQuestionAt(currQuestionIdx)
+    moveToQuestionAt(currQuestionIdx + 1)
 }
 
 function clearUserResponse() {
@@ -382,4 +437,137 @@ function clearUserResponse() {
 
 function getPaletteBtnFromQuestionIdx(questionIdx) {
     return document.getElementById('question-palette').querySelector(`button[data-question-id="${questionIdx}"]`)
+}
+
+function handleTestSubmit() {
+    let totMarkedForReviewQuestions = 0
+    let totVistedUnsavedQuestions = 0
+    let totUnvisitedQuestions = 0
+    let totUnsavedQuestions = 0
+    const unsavedQuestionMessages = []
+    const currQuestion = testData.questions[currQuestionIdx]
+
+    if (currQuestion.status === Q_NOT_VISITED) {
+        currQuestion.status = Q_ANS_NOT_SAVED
+        formatBtnForQuestionAt(currQuestionIdx)
+    }
+    
+    testData.questions.forEach(question => {
+        if (question.status === Q_MARKED_FOR_REVIEW)
+            totMarkedForReviewQuestions += 1
+        else if (question.status === Q_ANS_NOT_SAVED)
+            totVistedUnsavedQuestions += 1
+        else if (question.status === Q_NOT_VISITED)
+            totUnvisitedQuestions += 1
+    })
+
+    if (totMarkedForReviewQuestions > 0)
+        unsavedQuestionMessages.push(`<i class="bi bi-search"></i> &nbsp;<b>${totMarkedForReviewQuestions} ${appendSIfPlural(totMarkedForReviewQuestions, "question")}</b> ${hasOrHave(totMarkedForReviewQuestions)} been marked for review but not saved`)
+    if (totVistedUnsavedQuestions > 0)
+        unsavedQuestionMessages.push(`<i class="bi bi-exclamation-circle-fill"></i> &nbsp;<b>${totVistedUnsavedQuestions} ${appendSIfPlural(totVistedUnsavedQuestions, "question")}</b> ${hasOrHave(totVistedUnsavedQuestions)} been visited but not saved`)
+    if (totUnvisitedQuestions > 0)
+        unsavedQuestionMessages.push(`<i class="bi bi-x-circle"></i> &nbsp;<b>${totUnvisitedQuestions} ${appendSIfPlural(totUnvisitedQuestions, "question")}</b> ${hasOrHave(totUnvisitedQuestions)} not been visited`)
+
+    totUnsavedQuestions = totMarkedForReviewQuestions + totVistedUnsavedQuestions + totUnvisitedQuestions
+    if (totUnsavedQuestions > 0) {
+        submitConfirmModal = new bootstrap.Modal(document.getElementById('submit-confirmation-modal'));
+        const submitConfirmModalBody = document.getElementById('unsaved-questions-message')
+        submitConfirmModalBody.innerHTML = `<div class="mb-2">You have <b>${totUnsavedQuestions} unsaved</b> ${appendSIfPlural(totUnsavedQuestions, "question")}<span>`
+        unsavedQuestionMessages.forEach(message => {
+            submitConfirmModalBody.innerHTML += `<div class="mb-2">${message}</span>`
+        })
+        submitConfirmModal.show()
+    }
+    else { 
+        submitTest()
+    }
+        
+}
+
+function submitTest() {
+    clearInterval(countdownTimer);
+    calculateUserTestScore()
+    if (submitConfirmModal) {
+        closeSubmitConfirmModel()
+    }
+
+    const attemptDetails = {
+        test_attempt_start_time: testStartTime,
+        test_duration_seconds: testData.duration_seconds - remainingSeconds,
+        test_score: userTestScore
+    }
+
+    fetch(`/tests/attempt/${testData.id}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(attemptDetails)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log("Test attempt saved. Response: ", data)
+    })
+    .catch(error => {
+        console.error('Error submitting attempt details:', error);
+    });
+}
+
+function hasOrHave(num) {
+    return num > 1 ? "have" : "has"
+}
+
+function appendSIfPlural(num, singularFormWord) {
+    return num > 1 ? singularFormWord + "s" : singularFormWord
+}
+
+function closeSubmitConfirmModel() {
+    submitConfirmModal.hide()
+    submitConfirmModal = null
+}
+
+function calculateUserTestScore() { 
+    testData.questions.forEach(question => {
+        if (question.status === Q_ANS_SAVED || question.status === Q_MARKED_FOR_REVIEW_ANS_SAVED) {
+            if (question.question_type === MSQ || question.question_type === MCQ) {
+                if (areContentsSame(question.user_response.selections, getCorrectOptionIndices(question.options)))
+                    userTestScore += question.marks_pos
+                else
+                    userTestScore -= question.marks_neg
+            }
+            else if (question.question_type === RESP) {
+                if (question.user_response.response_text.trim() == question.options[0].option_text.trim())
+                    userTestScore += question.marks_pos
+                else
+                    userTestScore -= question.marks_neg
+            }
+        }
+    })
+}
+
+function getCorrectOptionIndices(options) {
+    const correctIndices = [];
+    options.forEach((option, index) => {
+        if (option.is_correct) {
+            correctIndices.push(index);
+        }
+    });
+    return correctIndices;
+}
+
+function areContentsSame(arr1, arr2) {
+    return arr1.length === arr2.length && arr1.every(val => arr2.includes(val))
+}
+
+function hideSideBarIfOpen() {
+    const sideBarInstance = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarOffcanvas'))
+    if (sideBarInstance) {
+        sideBarInstance.hide()
+    }
 }

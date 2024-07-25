@@ -78,22 +78,27 @@ button.secondary-col-1:active {
 }
 
 .secondary-col-2{
-    background-color: #FF7F3E;
+    background-color: #3367e0;
+    border-color: #3367e0 ;
+    color: whitesmoke;
 }
 
 button.secondary-col-2:disabled{
-    background-color: #fa8c55;
-    border-color: #fa8c55;
+    background-color: #4b7df2;
+    border-color: #4b7df2;
+    color: whitesmoke;
 }
 
 button.secondary-col-2:hover {
-    background-color: #f76d28;
-    border-color: #f76d28;
+    background-color: #1d50c8;
+    border-color: #1d50c8;
+    color: whitesmoke;
 }
 
 button.secondary-col-2:active {
-    background-color: #e96524;
-    border-color: #e96524;
+    background-color: #283b98;
+    border-color: #283b98;
+    color: whitesmoke;
 }
 
 

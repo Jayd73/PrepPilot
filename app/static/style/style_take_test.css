@@ -10,6 +10,11 @@ body{
     margin-left: 1vh;
 }
 
+.highlight-on-hover:hover{
+    cursor: pointer;
+    font-weight: bold;
+}
+
 @media (min-width: 768px) {
     .mt-md-neg-2 {
         margin-top: -2rem;
