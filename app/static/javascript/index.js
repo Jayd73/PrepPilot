@@ -8,6 +8,8 @@ var lastSelectedSortOptBtn;
 var sort_by = null;
 var sort_order = null;
 
+const SHOW_OFFCANVAS_THRESHOLD = 768
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const createTestBtns = document.querySelectorAll('.create-test-btn');
@@ -36,11 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     })
 
-    // Search bar set up
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    document.getElementById('delete-confirm-btn').addEventListener('click', deleteRecord)
+    document.getElementById('bulk-delete-confirm-btn').addEventListener('click', bulkDeleteRecords)
+
+    // Shift sidebar and searchbar based on window width
+    const mediaQuery = window.matchMedia(`(max-width: ${SHOW_OFFCANVAS_THRESHOLD}px)`);
     shiftContentBasedOnScreenWidth(mediaQuery, 'main-search-bar-container', 'search-bar-container-long-width', 'search-bar-container-short-width');
+    shiftContentBasedOnScreenWidth(mediaQuery, 'sidebar-main-content', 'sidebar-long-width', 'sidebar-short-width');
     mediaQuery.addEventListener('change', (e) => { 
         shiftContentBasedOnScreenWidth(e, 'main-search-bar-container', 'search-bar-container-long-width', 'search-bar-container-short-width')
+        shiftContentBasedOnScreenWidth(e, 'sidebar-main-content', 'sidebar-long-width', 'sidebar-short-width');
     });
 
     document.getElementById('sort-btn').addEventListener('click', () => {
@@ -59,8 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
         event.stopPropagation()
     })
     
-    document.getElementById('delete-confirm-btn').addEventListener('click', deleteRecord)
-    document.getElementById('bulk-delete-confirm-btn').addEventListener('click', bulkDeleteRecords)
+    document.getElementById('bulk-delete-btn').addEventListener('click', () => {
+        const bulkDeleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteAllConfirmationModal'));
+        if (selectedTestIds.size > 0) {
+            document.getElementById('tot-selected-items-for-del').innerHTML = selectedTestIds.size
+            bulkDeleteConfirmModal.show()
+        }
+            
+    })
     document.getElementById('update-test-btn-modal').addEventListener('click', () => {
         window.location.href = `/test-editor?test_id=${currClickedTestId}`
     })
@@ -74,6 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (document.activeElement === searchInp) {
                 refetchData();
             }
+        }
+    });
+
+    window.addEventListener('resize', () => { 
+        if (window.innerWidth > SHOW_OFFCANVAS_THRESHOLD) { 
+            hideSideBarIfOpen()
         }
     });
 
@@ -128,20 +147,16 @@ function toggleSortOptBtn(selectedSortOptBtn) {
 }
 
 function handleTabBtnClick(event) {
-    document.querySelectorAll('.tab-btn').forEach(button => button.classList.remove('active-tab-btn'));
-    const sideBarInstance = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarOffcanvas')) 
     const testType = event.target.dataset.type;
     const hiddenComps = document.querySelectorAll('.hidden-component');
-
-    if (sideBarInstance) {
-        sideBarInstance.hide()
-    }
 
     currTestType = testType
     currPageNum = 1
     selectedTestIds = new Set()
+    
+    document.querySelectorAll('.tab-btn').forEach(button => button.classList.remove('active-tab-btn'));
     document.getElementById('select-all-label').textContent = "Select All"
-
+    hideSideBarIfOpen()
 
     hiddenComps.forEach(hiddenComp => {
         if (testType === "attempted" || testType === "created") {
@@ -762,9 +777,18 @@ function refetchData() {
     fetchTests(currTestType, currPageNum, perPageRecords)
 }
 
-function clearSearchText() {
+function handleSearchClear() {
     document.getElementById('search-inp').value = '';
+    refetchData()
 }
+
+function hideSideBarIfOpen() {
+    const sideBarInstance = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarOffcanvas'))
+    if (sideBarInstance) {
+        sideBarInstance.hide()
+    }
+}
+
 
 
 
