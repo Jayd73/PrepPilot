@@ -243,3 +243,21 @@ function shiftContentBasedOnScreenWidth(e, contentContainerId, longerWidthContai
       }
     }
 }
+
+function calcAndFormatPerc(marks, totMarks) {
+    let percentage = "🚫"
+    if (!totMarks || totMarks === 0) {
+        return percentage
+    }
+
+    percentage = (marks / totMarks) * 100;
+    let formattedPercentage;
+
+    if (percentage % 1 === 0) {
+        formattedPercentage = percentage.toString();
+    } else {
+        formattedPercentage = percentage.toFixed(2);
+    }
+
+    return formattedPercentage + "%"
+}

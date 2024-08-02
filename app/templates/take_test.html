@@ -315,6 +315,101 @@
             </div>
         </div>
     </div>
+
+    <div class="container-fluid w-100 d-none mt-3 px-5" id="test-analysis">
+        <div class="row mb-3 d-none" id="is-submitting">
+            <div class="col-12">
+                <div class="fs-5 d-flex justify-content-start align-items-center">
+                    <div class="spinner-border me-2" aria-hidden="true"></div>
+                    Submitting test ...
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid mb-2 d-none" id="analysis-container">
+            <div class="row mb-2">
+                <div class="col-md-4 col-sm-6">
+                    <div class="row d-flex align-items-center">
+                        <div class="col-8 pe-3">
+                            <span class="fw-bold text-success" style="font-size: 10vh;" id="user-test-score"> <!-- User test score --> </span>
+                            <span class="fs-4" id="user-score-marks-label">marks</span>
+                        </div>
+                        <div class="col-4" style="height: 24vh">
+                            <div class="row d-flex justify-content-start pt-1">
+                                <div class="col-12">
+                                   <span>Out of</span>
+                                   <div class="fs-5 fw-bold" id="analysis-report-tot-test-marks" style="margin-top: -1vh;"><!-- Test tot marks --></div>
+                                </div>
+                            </div>
+                            <div class="row d-flex justify-content-start">
+                                <div class="col-12">
+                                    <i class="fs-5 bi bi-award-fill"></i>
+                                    <span class="fs-5 fw-bold text-success" id="analysis-report-user-perc"></span>
+                                </div>
+                            </div> 
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-6" style="border: black 1px solid;">
+                    <canvas class="w-100" id="attempted-questions-chart" style="height: 10vh;"></canvas>
+                </div>
+
+                <div class="col-md-3" style="border: blue 1px solid;">
+                    <div class="row" style="border: black 1px solid;">
+                        <div class="col-12 fs-6">
+                            <i class="bi bi-bullseye"></i>
+                            Accuracy
+                        </div>
+                    </div>
+                    <div class="row" style="border: black 1px solid;">
+                        <div class="col-12 text-success fw-bold" id="analysis-report-accuracy" style="font-size: 10vh;">
+                            <!-- Accuracy -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col-md-3" style="border: black 1px solid;">
+                    <div class="row">
+                        <div class="col-12 fs-6">
+                            <i class="bi bi-hourglass-split"></i>
+                            Avg. Time Spent per Visited Question
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-12 fs-4" id="analysis-report-avg-time-per-question">
+                            <!-- Average time per question-->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9 col-12" style="border: blue 1px solid;">
+                    <canvas class="w-100" id="time-per-questions-chart" style="height: 26vh;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <canvas class="w-100" id="accuracy-chart" style="height: 26vh;"></canvas>
+            </div>
+            <div class="col-md-3" style="height: 26vh;">
+                Input for time phases
+            </div>
+        </div>
+
+        <div class="row justify-content-center mt-1">
+            <div class="col-md-4">
+                <button class="btn secondary-col-1 w-100" id="goto-dashboard-btn">
+                    <i class="bi bi-layout-sidebar"></i>
+                    &nbsp;
+                    Go to Dashboard
+                </button>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel"
@@ -361,11 +456,15 @@
     </div>
 </div>
 
-{% endblock %} {% block js %}
+{% endblock %} 
+
+{% block js %}
 <script type="text/javascript">
     var testId = "{{ test_id | tojson }}";
     testId = Number(testId);
 </script>
 
 <script src="../static/javascript/take_test.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 {% endblock %}

@@ -1,12 +1,15 @@
 var testData = null;
 var currQuestionIdx = 0;
 var currClickedPalatteBtn = null;
-var questionVisitedAtTime = null;
+var currQuestionVisitedAtTime = null;
 var testStartTime = null;
 var submitConfirmModal = null;
-var userTestScore = 0
 var remainingSeconds = null;
 var countdownTimer = null;
+var userTestScore = 0
+var totAttemptedQuestions = 0
+var totCorrectAnswers = 0
+var accuracyChart = null;
 
 const Q_ANS_SAVED = "ans";
 const Q_MARKED_FOR_REVIEW = "marked";
@@ -99,6 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
         changePaletteLegendAnchorPt()
         hideSideBarIfScreenWidthIsBig()
     });
+
+    document.getElementById('goto-dashboard-btn').addEventListener('click', () => {
+        window.location.href = "/"
+    })
 
 })
 
@@ -297,12 +304,12 @@ function moveToQuestionAt(nextQuestionIdx) {
         currClickedPalatteBtn.classList.add(currClickedPalatteBtn.getAttribute('data-bg-col-class-not-curr'))
     }
     
-    if (!questionVisitedAtTime) {
-        questionVisitedAtTime = now
+    if (!currQuestionVisitedAtTime) {
+        currQuestionVisitedAtTime = now
     }
-    currQuestion.time_spent += now - questionVisitedAtTime
+    currQuestion.time_spent += now - currQuestionVisitedAtTime
     currQuestionIdx = nextQuestionIdx
-    questionVisitedAtTime = now
+    currQuestionVisitedAtTime = now
     nextQuestionBtn.classList.remove(nextQuestionBtn.getAttribute('data-bg-col-class-not-curr'))
     nextQuestionBtn.classList.add(nextQuestionBtn.getAttribute('data-bg-col-class-curr'))
     currClickedPalatteBtn = nextQuestionBtn
@@ -405,6 +412,7 @@ function saveUserResponse() {
 
     question.user_response.selections = selectedOptionIndices
     question.user_response.response_text = response_text
+    question.user_response.save_time = new Date()
 }
 
 function changeQuestionStatusAfterSave() {
@@ -450,6 +458,7 @@ function handleTestSubmit() {
     if (currQuestion.status === Q_NOT_VISITED) {
         currQuestion.status = Q_ANS_NOT_SAVED
         formatBtnForQuestionAt(currQuestionIdx)
+        currQuestion.time_spent = new Date() - currQuestionVisitedAtTime
     }
     
     testData.questions.forEach(question => {
@@ -486,7 +495,7 @@ function handleTestSubmit() {
 
 function submitTest() {
     clearInterval(countdownTimer);
-    calculateUserTestScore()
+    calculateTestResults()
     if (submitConfirmModal) {
         closeSubmitConfirmModel()
     }
@@ -496,6 +505,11 @@ function submitTest() {
         test_duration_seconds: testData.duration_seconds - remainingSeconds,
         test_score: userTestScore
     }
+
+    const isSubmittingIndicator = document.getElementById('is-submitting')
+    document.getElementById('test-screen').classList.add('d-none')
+    document.getElementById('test-analysis').classList.remove('d-none')
+    isSubmittingIndicator.classList.remove('d-none')
 
     fetch(`/tests/attempt/${testData.id}`, {
         method: 'POST',
@@ -512,7 +526,9 @@ function submitTest() {
         return response.json();
     })
     .then(data => {
-        console.log("Test attempt saved. Response: ", data)
+        isSubmittingIndicator.classList.add('d-none');
+        document.getElementById('analysis-container').classList.remove('d-none')
+        setUpAnalysis()
     })
     .catch(error => {
         console.error('Error submitting attempt details:', error);
@@ -524,7 +540,7 @@ function hasOrHave(num) {
 }
 
 function appendSIfPlural(num, singularFormWord) {
-    return num > 1 ? singularFormWord + "s" : singularFormWord
+    return num == 1 ? singularFormWord : singularFormWord + "s"
 }
 
 function closeSubmitConfirmModel() {
@@ -532,24 +548,31 @@ function closeSubmitConfirmModel() {
     submitConfirmModal = null
 }
 
-function calculateUserTestScore() { 
+function calculateTestResults() {
     testData.questions.forEach(question => {
         if (question.status === Q_ANS_SAVED || question.status === Q_MARKED_FOR_REVIEW_ANS_SAVED) {
-            if (question.question_type === MSQ || question.question_type === MCQ) {
-                if (areContentsSame(question.user_response.selections, getCorrectOptionIndices(question.options)))
-                    userTestScore += question.marks_pos
-                else
-                    userTestScore -= question.marks_neg
-            }
-            else if (question.question_type === RESP) {
-                if (question.user_response.response_text.trim() == question.options[0].option_text.trim())
-                    userTestScore += question.marks_pos
-                else
-                    userTestScore -= question.marks_neg
+            totAttemptedQuestions += 1;
+            if (isAnswerCorrect(question)) {
+                totCorrectAnswers += 1;
+                userTestScore += question.marks_pos;
+                question.user_response.is_correct = true
+            } else {
+                userTestScore -= question.marks_neg;
+                question.user_response.is_correct = false
             }
         }
-    })
+    });
 }
+
+function isAnswerCorrect(question) {
+    if (question.question_type === MSQ || question.question_type === MCQ) {
+        return areContentsSame(question.user_response.selections, getCorrectOptionIndices(question.options));
+    } else if (question.question_type === RESP) {
+        return question.user_response.response_text.trim() === question.options[0].option_text.trim();
+    }
+    return false;
+}
+
 
 function getCorrectOptionIndices(options) {
     const correctIndices = [];
@@ -570,4 +593,245 @@ function hideSideBarIfOpen() {
     if (sideBarInstance) {
         sideBarInstance.hide()
     }
+}
+
+function setUpAnalysis() {
+    let avgTimePerQuestion = 0
+    let totVisitedQuestions = 0
+
+    document.getElementById('user-test-score').innerHTML = userTestScore
+    document.getElementById('user-score-marks-label').innerHTML = appendSIfPlural(userTestScore, "mark")
+    document.getElementById('analysis-report-tot-test-marks').innerHTML = `${testData.total_marks} ${appendSIfPlural(testData.total_marks, "mark")}`
+    document.getElementById('analysis-report-user-perc').innerHTML = calcAndFormatPerc(userTestScore, testData.total_marks)
+    document.getElementById('analysis-report-accuracy').innerHTML = calcAndFormatPerc(totCorrectAnswers, totAttemptedQuestions)
+
+    testData.questions.forEach(question => {
+        if (question.status !== Q_NOT_VISITED) {
+            totVisitedQuestions += 1
+            avgTimePerQuestion += question.time_spent
+        }
+    })
+    avgTimePerQuestion /= totVisitedQuestions
+
+    document.getElementById('analysis-report-avg-time-per-question').innerHTML = formatDuration((avgTimePerQuestion / 1000).toFixed(2))
+    drawAttemptedQuestionsChart()
+    drawTimeSpentPerQuestionChart()
+}
+
+// With help from ChatGPT
+function drawAttemptedQuestionsChart() {
+    const data = {
+        labels: ['Correct', 'Incorrect', 'Unattempted'],
+        datasets: [{
+            data: [totCorrectAnswers, totAttemptedQuestions - totCorrectAnswers, testData.questions.length - totAttemptedQuestions], // Replace with your actual data
+            backgroundColor: [
+                '#198754', // for Correct
+                '#d93444', // for Incorrect
+                '#a7acb1'  // for Unattempted
+            ],
+            hoverBackgroundColor: [
+                '#198754', // for hover on Correct
+                '#d93444', // for hover on Incorrect
+                '#a7acb1'  // for hover on Unattempted
+            ]
+        }]
+    };
+
+    // Configuration options for the chart
+    const config = {
+        type: 'doughnut',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            return `${label}: ${value}`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    const ctx = document.getElementById('attempted-questions-chart').getContext('2d');
+    new Chart(ctx, config);
+}
+
+// With help from ChatGPT
+function drawTimeSpentPerQuestionChart() {
+    const timeSpentInMinutes = testData.questions.filter(question => question.status !== Q_NOT_VISITED).map(question => question.time_spent / 60000);
+
+    // Create labels for the chart (e.g., Question 1, Question 2, ...)
+    const labels = timeSpentInMinutes.map((_, index) => `Q${index + 1}`);
+
+    // Data for the chart
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Time per Question (minutes)',
+            data: timeSpentInMinutes,
+            backgroundColor: '#3367e0',
+            borderRadius: 4,
+            maxBarThickness: 50
+        }]
+    };
+
+    // Configuration options for the chart
+    const config = {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Time (minutes)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Questions'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Time: ${context.raw} minutes`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    const ctx = document.getElementById('time-per-questions-chart').getContext('2d');
+    new Chart(ctx, config);
+}
+
+// With help from ChatGPT
+function drawAccuracyChart(phases, accuracies, customTicks) {
+    const ctx = document.getElementById('accuracy-chart').getContext('2d');
+
+    // Destroy the previous chart instance if it exists
+    if (accuracyChart) {
+        accuracyChart.destroy();
+    }
+
+    // Create annotations for each phase with alternating background colors
+    const annotations = phases.map((phase, index) => {
+        return {
+            type: 'box',
+            xScaleID: 'x',
+            yScaleID: 'y',
+            xMin: phase[0],
+            xMax: phase[1],
+            yMin: 0,
+            yMax: 100,
+            backgroundColor: index % 2 === 0 ? 'rgba(61, 103, 227, 0.3)' : 'rgba(173, 193, 237, 0.3)'
+        };
+    });
+
+    // Create data points in the middle of each phase
+    const dataPoints = phases.map((phase, index) => {
+        return {
+            x: (phase[0] + phase[1]) / 2,
+            y: accuracies[index]
+        };
+    });
+
+    // Create the chart
+    accuracyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Accuracy %',
+                data: dataPoints,
+                fill: false,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Time (%)'
+                    },
+                    min: 0,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return customTicks.includes(value) ? value + '%' : '';
+                        },
+                        stepSize: 1,
+                        autoSkip: false,
+                        minRotation: 45, // Slanted ticks
+                        maxRotation: 45 // Slanted ticks
+                    },
+                    grid: {
+                        display: false // Hide vertical grid lines
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Accuracy (%)'
+                    },
+                    min: 0,
+                    max: 100,
+                    grid: {
+                        display: true // Ensure horizontal grid lines are visible
+                    }
+                }
+            },
+            plugins: {
+                annotation: {
+                    annotations: annotations
+                }
+            }
+        }
+    });
+}
+
+// timePhasePerc: contains list of % of time in incr. order. Last element must be 100
+function getAccuracyForTimePhases(timePhasePerc) {
+    const userTotTestTimeSec = testData.duration_seconds - remainingSeconds
+    let timePhasePercLower = 0
+    let accuracyPerc = []
+    timePhasePerc.forEach(timePhasePercUpper => {
+        let currPhaseAttemptedQuestions = 0
+        let currPhaseTotCorrectAnswers = 0
+        testData.questions.forEach(question => {
+            let userResponse = question.user_response
+            let userSaveTimeSecPerc = ((userResponse.save_time - testStartTime) / 1000) / userTotTestTimeSec * 100
+            if (userResponse && (userSaveTimeSecPerc > timePhasePercLower && userSaveTimeSecPerc <= timePhasePercUpper)) {
+                currPhaseAttemptedQuestions += 1
+                if (userResponse.is_correct)
+                    currPhaseTotCorrectAnswers += 1
+            }
+        })
+        accuracyPerc.push(currPhaseTotCorrectAnswers / currPhaseAttemptedQuestions * 100)
+        timePhasePercLower = timePhasePercUpper
+    })
+    return accuracyPerc
 }
