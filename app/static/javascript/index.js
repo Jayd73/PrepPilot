@@ -629,7 +629,9 @@ function showAttemptDetails(event, test, isTestDeleted) {
     document.getElementById('test-attempts-modal').innerHTML = `<i class="bi bi-bar-chart-fill"></i> Attempts: ${toTwoDigitFormat(test.attempts)}`
     document.getElementById('test-last-attempted-time-modal').innerHTML = `${convertAndFormatToLocalTime(test.last_attempted_start_time)}`
     document.getElementById('test-best-score-modal').innerHTML = `<i class="bi bi-trophy-fill"></i> Best Score: ${formatMarks(test.best_score)}`
-    document.getElementById('test-best-score-perc-modal').innerHTML = `<i class="bi bi-award-fill"></i> <b style="color: green">${calcAndFormatPerc(test.best_score, test.total_marks)}</b>`
+    document.getElementById('test-best-score-perc-modal').innerHTML = `
+        <i class="bi bi-award-fill"></i> 
+        <b style="color: green">${calcAndFormatPerc(test.best_score, test.total_marks) || '🚫'}</b>`;
     document.getElementById('test-best-score-duration-modal').innerHTML = `<i class="bi bi-hourglass-bottom"></i> Best Score Time: ${formatDuration(test.best_score_duration_seconds)}`
     document.getElementById('test-best-score-achieved-time-modal').innerHTML = `${convertAndFormatToLocalTime(test.best_score_attempt_start_time)}`
     

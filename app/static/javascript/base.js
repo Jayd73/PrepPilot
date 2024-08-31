@@ -116,7 +116,6 @@ function capInpVal(input, lowerLim, upperLim) {
 
 // With help of ChatGPT
 function toTwoDigitFormat(num) {
-    // if string only contains 0's
     let numStr = num.toString()
     if (/^0*$/.test(numStr)) { 
         return ""
@@ -245,12 +244,11 @@ function shiftContentBasedOnScreenWidth(e, contentContainerId, longerWidthContai
 }
 
 function calcAndFormatPerc(marks, totMarks) {
-    let percentage = "🚫"
     if (!totMarks || totMarks === 0) {
-        return percentage
+        return false;
     }
 
-    percentage = (marks / totMarks) * 100;
+    let percentage = (marks / totMarks) * 100;
     let formattedPercentage;
 
     if (percentage % 1 === 0) {

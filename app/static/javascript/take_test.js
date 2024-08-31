@@ -424,8 +424,10 @@ function changeQuestionStatusAfterSave() {
 }
 
 function loadNextQuestion() {
-    if (currQuestionIdx == testData.questions.length - 1)
-        return
+    if (currQuestionIdx == testData.questions.length - 1) {
+        testData.questions[currQuestionIdx].time_spent = new Date() - currQuestionVisitedAtTime
+        return;
+    }
     moveToQuestionAt(currQuestionIdx + 1)
 }
 
@@ -599,11 +601,12 @@ function setUpAnalysis() {
     let avgTimePerQuestion = 0
     let totVisitedQuestions = 0
 
-    document.getElementById('user-test-score').innerHTML = userTestScore
+    document.getElementById('user-test-score').innerHTML = toTwoDigitFormat(userTestScore)  || '00'
     document.getElementById('user-score-marks-label').innerHTML = appendSIfPlural(userTestScore, "mark")
     document.getElementById('analysis-report-tot-test-marks').innerHTML = `${testData.total_marks} ${appendSIfPlural(testData.total_marks, "mark")}`
     document.getElementById('analysis-report-user-perc').innerHTML = calcAndFormatPerc(userTestScore, testData.total_marks)
-    document.getElementById('analysis-report-accuracy').innerHTML = calcAndFormatPerc(totCorrectAnswers, totAttemptedQuestions)
+    document.getElementById('analysis-report-accuracy').innerHTML = calcAndFormatPerc(totCorrectAnswers, totAttemptedQuestions) || '<span class="text-secondary">Not available</span>';
+    document.getElementById('analysis-report-test-completion-time').innerHTML = formatDuration(testData.duration_seconds - remainingSeconds)
 
     testData.questions.forEach(question => {
         if (question.status !== Q_NOT_VISITED) {
@@ -615,7 +618,6 @@ function setUpAnalysis() {
 
     document.getElementById('analysis-report-avg-time-per-question').innerHTML = formatDuration((avgTimePerQuestion / 1000).toFixed(2))
     drawAttemptedQuestionsChart()
-    drawTimeSpentPerQuestionChart()
 }
 
 // With help from ChatGPT
@@ -645,8 +647,21 @@ function drawAttemptedQuestionsChart() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
+                title: {
+                    display: true,
+                    text: 'Question Response Breakdown',
+                    color: 'black',
+                    font: {
+                        size: 18,
+                    },
+                    padding: {
+                        top: 10,
+                        bottom: 20
+                    }
+                },
+
                 legend: {
-                    position: 'top',
+                    position: 'right',
                 },
                 tooltip: {
                     callbacks: {
@@ -656,182 +671,12 @@ function drawAttemptedQuestionsChart() {
                             return `${label}: ${value}`;
                         }
                     }
-                }
+                },
+                responsive: true
             }
         }
     };
 
     const ctx = document.getElementById('attempted-questions-chart').getContext('2d');
     new Chart(ctx, config);
-}
-
-// With help from ChatGPT
-function drawTimeSpentPerQuestionChart() {
-    const timeSpentInMinutes = testData.questions.filter(question => question.status !== Q_NOT_VISITED).map(question => question.time_spent / 60000);
-
-    // Create labels for the chart (e.g., Question 1, Question 2, ...)
-    const labels = timeSpentInMinutes.map((_, index) => `Q${index + 1}`);
-
-    // Data for the chart
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: 'Time per Question (minutes)',
-            data: timeSpentInMinutes,
-            backgroundColor: '#3367e0',
-            borderRadius: 4,
-            maxBarThickness: 50
-        }]
-    };
-
-    // Configuration options for the chart
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Time (minutes)'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Questions'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `Time: ${context.raw} minutes`;
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    const ctx = document.getElementById('time-per-questions-chart').getContext('2d');
-    new Chart(ctx, config);
-}
-
-// With help from ChatGPT
-function drawAccuracyChart(phases, accuracies, customTicks) {
-    const ctx = document.getElementById('accuracy-chart').getContext('2d');
-
-    // Destroy the previous chart instance if it exists
-    if (accuracyChart) {
-        accuracyChart.destroy();
-    }
-
-    // Create annotations for each phase with alternating background colors
-    const annotations = phases.map((phase, index) => {
-        return {
-            type: 'box',
-            xScaleID: 'x',
-            yScaleID: 'y',
-            xMin: phase[0],
-            xMax: phase[1],
-            yMin: 0,
-            yMax: 100,
-            backgroundColor: index % 2 === 0 ? 'rgba(61, 103, 227, 0.3)' : 'rgba(173, 193, 237, 0.3)'
-        };
-    });
-
-    // Create data points in the middle of each phase
-    const dataPoints = phases.map((phase, index) => {
-        return {
-            x: (phase[0] + phase[1]) / 2,
-            y: accuracies[index]
-        };
-    });
-
-    // Create the chart
-    accuracyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: [{
-                label: 'Accuracy %',
-                data: dataPoints,
-                fill: false,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                tension: 0.3
-            }]
-        },
-        options: {
-            scales: {
-                x: {
-                    type: 'linear',
-                    position: 'bottom',
-                    title: {
-                        display: true,
-                        text: 'Time (%)'
-                    },
-                    min: 0,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return customTicks.includes(value) ? value + '%' : '';
-                        },
-                        stepSize: 1,
-                        autoSkip: false,
-                        minRotation: 45, // Slanted ticks
-                        maxRotation: 45 // Slanted ticks
-                    },
-                    grid: {
-                        display: false // Hide vertical grid lines
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Accuracy (%)'
-                    },
-                    min: 0,
-                    max: 100,
-                    grid: {
-                        display: true // Ensure horizontal grid lines are visible
-                    }
-                }
-            },
-            plugins: {
-                annotation: {
-                    annotations: annotations
-                }
-            }
-        }
-    });
-}
-
-// timePhasePerc: contains list of % of time in incr. order. Last element must be 100
-function getAccuracyForTimePhases(timePhasePerc) {
-    const userTotTestTimeSec = testData.duration_seconds - remainingSeconds
-    let timePhasePercLower = 0
-    let accuracyPerc = []
-    timePhasePerc.forEach(timePhasePercUpper => {
-        let currPhaseAttemptedQuestions = 0
-        let currPhaseTotCorrectAnswers = 0
-        testData.questions.forEach(question => {
-            let userResponse = question.user_response
-            let userSaveTimeSecPerc = ((userResponse.save_time - testStartTime) / 1000) / userTotTestTimeSec * 100
-            if (userResponse && (userSaveTimeSecPerc > timePhasePercLower && userSaveTimeSecPerc <= timePhasePercUpper)) {
-                currPhaseAttemptedQuestions += 1
-                if (userResponse.is_correct)
-                    currPhaseTotCorrectAnswers += 1
-            }
-        })
-        accuracyPerc.push(currPhaseTotCorrectAnswers / currPhaseAttemptedQuestions * 100)
-        timePhasePercLower = timePhasePercUpper
-    })
-    return accuracyPerc
 }

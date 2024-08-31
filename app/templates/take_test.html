@@ -326,19 +326,19 @@
             </div>
         </div>
 
-        <div class="container-fluid mb-2 d-none" id="analysis-container">
-            <div class="row mb-2">
-                <div class="col-md-4 col-sm-6">
-                    <div class="row d-flex align-items-center">
+        <div class="container-fluid mb-2 col-lg-8 d-none" id="analysis-container">
+            <div class="row mt-3 mb-5 d-flex justify-content-between">
+                <div class="col-md-6 col-sm-12">
+                    <div class="row d-flex align-items-center mb-3">
                         <div class="col-8 pe-3">
-                            <span class="fw-bold text-success" style="font-size: 10vh;" id="user-test-score"> <!-- User test score --> </span>
+                            <span class="fw-bold text-success" style="font-size: 6rem" id="user-test-score"> <!-- User test score --> </span>
                             <span class="fs-4" id="user-score-marks-label">marks</span>
                         </div>
-                        <div class="col-4" style="height: 24vh">
-                            <div class="row d-flex justify-content-start pt-1">
+                        <div class="col-4" style="width: max-content;">
+                            <div class="row mb-2 d-flex justify-content-start">
                                 <div class="col-12">
                                    <span>Out of</span>
-                                   <div class="fs-5 fw-bold" id="analysis-report-tot-test-marks" style="margin-top: -1vh;"><!-- Test tot marks --></div>
+                                   <div class="fs-5 fw-bold" id="analysis-report-tot-test-marks" style="margin-top: 0vh;"><!-- Test tot marks --></div>
                                 </div>
                             </div>
                             <div class="row d-flex justify-content-start">
@@ -349,58 +349,66 @@
                             </div> 
                         </div>
                     </div>
+
+                    <div class="row mb-3 d-flex justify-content-between">
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-12 fs-6">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                    Accuracy
+                                </div>
+                            </div>
+                            <div class="row d-flex justify-content-center">
+                                <div class="col-12 text-success fs-4 fw-bold" id="analysis-report-accuracy">
+                                    <!-- Accuracy -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-md-none d-block mb-2"></div>
+
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-12 fs-6">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    Test completed in
+                                </div>
+                            </div>
+                            <div class="row d-flex justify-content-center">
+                                <div class="col-12 fs-4 fw-bold" id="analysis-report-test-completion-time">
+                                    <!-- Test completion time -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="row">
+                                <div class="col-12 fs-6">
+                                    <i class="bi bi-hourglass-split"></i>
+                                    Avg. Time Spent per Visited Question
+                                </div>
+                            </div>
+                            <div class="row d-flex justify-content-center">
+                                <div class="col-12 fs-4 fw-bold" id="analysis-report-avg-time-per-question">
+                                    <!-- Average time per question-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6" style="border: black 1px solid;">
-                    <canvas class="w-100" id="attempted-questions-chart" style="height: 10vh;"></canvas>
+                <div class="col-md-5" style="height: 40vh;">
+                    <canvas class="w-100" id="attempted-questions-chart" style="height: 30vh;"></canvas>
                 </div>
 
-                <div class="col-md-3" style="border: blue 1px solid;">
-                    <div class="row" style="border: black 1px solid;">
-                        <div class="col-12 fs-6">
-                            <i class="bi bi-bullseye"></i>
-                            Accuracy
-                        </div>
-                    </div>
-                    <div class="row" style="border: black 1px solid;">
-                        <div class="col-12 text-success fw-bold" id="analysis-report-accuracy" style="font-size: 10vh;">
-                            <!-- Accuracy -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mb-2">
-                <div class="col-md-3" style="border: black 1px solid;">
-                    <div class="row">
-                        <div class="col-12 fs-6">
-                            <i class="bi bi-hourglass-split"></i>
-                            Avg. Time Spent per Visited Question
-                        </div>
-                    </div>
-                    <div class="row d-flex justify-content-center">
-                        <div class="col-12 fs-4" id="analysis-report-avg-time-per-question">
-                            <!-- Average time per question-->
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-9 col-12" style="border: blue 1px solid;">
-                    <canvas class="w-100" id="time-per-questions-chart" style="height: 26vh;"></canvas>
-                </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <canvas class="w-100" id="accuracy-chart" style="height: 26vh;"></canvas>
-            </div>
-            <div class="col-md-3" style="height: 26vh;">
-                Input for time phases
-            </div>
-        </div>
-
-        <div class="row justify-content-center mt-1">
-            <div class="col-md-4">
+    
+        <div class="row justify-content-center">
+            <div class="col-md-3">
                 <button class="btn secondary-col-1 w-100" id="goto-dashboard-btn">
                     <i class="bi bi-layout-sidebar"></i>
                     &nbsp;
@@ -466,5 +474,6 @@
 
 <script src="../static/javascript/take_test.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
 {% endblock %}
