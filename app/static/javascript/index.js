@@ -1,4 +1,4 @@
-var perPageRecords = 10;
+var perPageRecords = 15;
 var selectedTestIds = new Set();
 var currPageTestIds = [];
 var currTestType;
@@ -9,7 +9,6 @@ var sort_by = null;
 var sort_order = null;
 
 const SHOW_OFFCANVAS_THRESHOLD = 768
-
 
 document.addEventListener('DOMContentLoaded', () => {
     const createTestBtns = document.querySelectorAll('.create-test-btn');
