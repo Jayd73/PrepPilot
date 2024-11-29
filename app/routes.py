@@ -739,7 +739,7 @@ def delete_subject_if_not_shared(test):
         db.session.delete(Subject.query.get(test.subject_id))
         db.session.commit()
 
-# Adding pre-wriiten tests for debugging
+# Adding pre-written tests for debugging
 @app.route('/add-sample-tests', methods=[POST])
 @login_required
 @admin_privilege_required
